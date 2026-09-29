@@ -1,0 +1,49 @@
+{
+  "meta": {
+    "tool": "historian",
+    "cc_threshold": 10,
+    "trajectory": { "delta_v": 0.02, "delta_e": 0.5, "beta_v": 0.01, "beta_e": 0.25 }
+  },
+  "commits": [
+    {
+      "sha": "aaa111",
+      "time": 1700000000,
+      "author": "dev",
+      "email": "dev@e.com",
+      "subject": "initial",
+      "body": "",
+      "permalink": null,
+      "files": {
+        "a.py": {
+          "loc": { "loc": 3, "sloc": 2, "blank": 0, "comment": 0 },
+          "cc": { "functions": [{ "name": "f", "cc": 1, "sloc": 2, "start": 1, "end": 2 }], "cc_max": 1, "cc_avg": 1.0 },
+          "complexity": { "mass": 1.41, "erosion": 0.0, "functions_over_10": 0 },
+          "duplication": { "clone_lines": 0 },
+          "verbosity": { "ast_hits": [], "rules": [] },
+          "import_cycles": { "imports": [] }
+        }
+      },
+      "commit": { "loc": 3, "verbosity": 0.0, "erosion": 0.0, "functions": 1, "cc_avg": 1.0 }
+    },
+    {
+      "sha": "bbb222",
+      "time": 1700000100,
+      "author": "dev",
+      "email": "dev@e.com",
+      "subject": "complexify",
+      "body": "",
+      "permalink": null,
+      "files": {
+        "a.py": {
+          "loc": { "loc": 40, "sloc": 30, "blank": 2, "comment": 0 },
+          "cc": { "functions": [{ "name": "f", "cc": 14, "sloc": 28, "start": 1, "end": 30 }], "cc_max": 14, "cc_avg": 14.0 },
+          "complexity": { "mass": 74.08, "erosion": 1.0, "functions_over_10": 1 },
+          "duplication": { "clone_lines": 0 },
+          "verbosity": { "ast_hits": [5], "rules": [] },
+          "import_cycles": { "imports": [] }
+        }
+      },
+      "commit": { "loc": 40, "verbosity": 0.02, "erosion": 0.5, "functions": 1, "cc_avg": 14.0 }
+    }
+  ]
+}
