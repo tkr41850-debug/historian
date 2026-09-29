@@ -17,7 +17,7 @@ function throws(name, fn) {
   console.log('FAIL ' + name + ' (no throw)');
 }
 
-const target = process.argv[2] || path.join(__dirname, 'sample.json');
+const target = process.argv[2] || path.join(__dirname, '..', 'sample.json');
 const raw = JSON.parse(fs.readFileSync(target, 'utf8'));
 const { meta, commits } = H.parseHistory(raw);
 
