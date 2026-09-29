@@ -6,6 +6,11 @@
 # recipes cannot execute).
 set -euo pipefail
 
+command -v uv >/dev/null || {
+    echo "uv not found — install it: curl -LsSf astral.sh/uv/install.sh | sh" >&2
+    exit 127
+}
+
 repo="${1:?usage: analyze.sh <repo> [out] [config] [commits] [codegen] [plugins]}"
 out="${2:-}"
 cfg="${3:-}"

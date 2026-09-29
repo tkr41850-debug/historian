@@ -46,6 +46,16 @@ Metrics source: pasted paper excerpt (mass/CC>10 erosion, AST∪clone verbosity,
 - README quickstart, config reference, plugin authoring guide
 - E2E: fresh fixture repo → codegen → JSON → drag into `vite dev` → screenshot/record
 
+### P7 Runners + CI + Pages (commit: feat(just-ci))
+- `justfile`: analyze (out/config/commits/codegen/plugins passthrough,
+  positional args with KEY= strip), serve, preview (Pages-identical
+  staging), sample, check (mirrors CI incl. fixture-freshness gate)
+- `.github/workflows/ci-pages.yml`: python (frozen pytest + freshness
+  gate), web-test (npm ci + vitest + smoke), build → Pages deploy
+  (main-only; dashboard root, minimal/ lens, sample.json fixture)
+- Subpath-safe: Vite `base: "./"`, relative minimal refs, CI stages
+  minimal + fixture into dist (verified zero breaks under HOST/subpath/)
+
 ## Test strategy per part
 - Unit (pytest/vitest) for formulas + each plugin in isolation
 - Integration: fixture git repo (script-generated, 3-5 commits incl. clone + cycle + complex fn) → full run → golden JSON diff

@@ -19,12 +19,12 @@ analyze repo out="" config="" commits="" codegen="" plugins="":
 
 # Serve the dashboard locally (vite dev server, root path — for local editing only).
 serve:
-    npm --prefix web install --no-audit --no-fund
+    npm --prefix web ci --no-audit --no-fund
     npm --prefix web run dev
 
 # Preview the production build (relative ./ base, same as GitHub Pages serves it).
 preview:
-    npm --prefix web install --no-audit --no-fund
+    npm --prefix web ci --no-audit --no-fund
     npm --prefix web run build
     mkdir -p web/dist/minimal && cp web/minimal/index.html web/minimal/app.js web/dist/minimal/ && cp web/sample.json web/dist/sample.json
     npm --prefix web run preview
@@ -36,7 +36,7 @@ sample:
 # Full local check suite (mirrors CI: pytest + build + vitest + smoke).
 check:
     uv run --frozen --group dev pytest -q
-    npm --prefix web install --no-audit --no-fund
+    npm --prefix web ci --no-audit --no-fund
     npm --prefix web run build
     npm --prefix web test -- --run
     node web/minimal/smoke.cjs
