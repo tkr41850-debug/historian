@@ -2,48 +2,365 @@
   "meta": {
     "tool": "historian",
     "cc_threshold": 10,
-    "trajectory": { "delta_v": 0.02, "delta_e": 0.5, "beta_v": 0.01, "beta_e": 0.25 }
+    "trajectory": {
+      "delta_v": 0.37209302325581395,
+      "delta_e": 1.0,
+      "beta_v": 0.18604651162790697,
+      "beta_e": 0.5
+    }
   },
   "commits": [
     {
-      "sha": "aaa111",
-      "time": 1700000000,
-      "author": "dev",
-      "email": "dev@e.com",
+      "sha": "bf8981ec126c56a708f7f089f1c55ff40c9b134a",
+      "author": "t",
+      "email": "t@e.com",
+      "time": 1790673140,
       "subject": "initial",
       "body": "",
-      "permalink": null,
+      "permalink": "https://github.com/org/repo/commit/bf8981ec126c56a708f7f089f1c55ff40c9b134a",
       "files": {
         "a.py": {
-          "loc": { "loc": 3, "sloc": 2, "blank": 0, "comment": 0 },
-          "cc": { "functions": [{ "name": "f", "cc": 1, "sloc": 2, "start": 1, "end": 2 }], "cc_max": 1, "cc_avg": 1.0 },
-          "complexity": { "mass": 1.41, "erosion": 0.0, "functions_over_10": 0 },
-          "duplication": { "clone_lines": 0 },
-          "verbosity": { "ast_hits": [], "rules": [] },
-          "import_cycles": { "imports": [] }
+          "cc": {
+            "functions": [
+              {
+                "name": "f",
+                "cc": 1,
+                "sloc": 2,
+                "start": 1,
+                "end": 2
+              }
+            ],
+            "cc_max": 1,
+            "cc_avg": 1.0
+          },
+          "complexity": {
+            "mass": 1.4142135623730951,
+            "erosion": 0.0,
+            "functions_over_10": 0
+          },
+          "duplication": {
+            "clone_lines": 0
+          },
+          "import_cycles": {
+            "imports": []
+          },
+          "loc": {
+            "loc": 2,
+            "sloc": 2,
+            "blank": 0,
+            "comment": 0
+          },
+          "verbosity": {
+            "ast_hits": [],
+            "rules": [
+              "empty-except-pass",
+              "bare-except",
+              "print-debug",
+              "console-log",
+              "any-cast",
+              "todo-stub",
+              "commented-code"
+            ]
+          }
         }
       },
-      "commit": { "loc": 3, "verbosity": 0.0, "erosion": 0.0, "functions": 1, "cc_avg": 1.0 }
+      "repo": {
+        "cc": {},
+        "complexity": {},
+        "duplication": {
+          "clone_lines_by_file": {}
+        },
+        "import_cycles": {
+          "cycles": [],
+          "files_in_cycles": [],
+          "cycle_count": 0
+        },
+        "loc": {},
+        "verbosity": {}
+      },
+      "commit": {
+        "loc": 2,
+        "verbosity": 0.0,
+        "erosion": 0.0,
+        "functions": 2,
+        "cc_avg": 1.0
+      }
     },
     {
-      "sha": "bbb222",
-      "time": 1700000100,
-      "author": "dev",
-      "email": "dev@e.com",
+      "sha": "67c5835a23bfe0362631ed78c7084a3bc98fd447",
+      "author": "t",
+      "email": "t@e.com",
+      "time": 1790673140,
       "subject": "complexify",
       "body": "",
-      "permalink": null,
+      "permalink": "https://github.com/org/repo/commit/67c5835a23bfe0362631ed78c7084a3bc98fd447",
       "files": {
         "a.py": {
-          "loc": { "loc": 40, "sloc": 30, "blank": 2, "comment": 0 },
-          "cc": { "functions": [{ "name": "f", "cc": 14, "sloc": 28, "start": 1, "end": 30 }], "cc_max": 14, "cc_avg": 14.0 },
-          "complexity": { "mass": 74.08, "erosion": 1.0, "functions_over_10": 1 },
-          "duplication": { "clone_lines": 0 },
-          "verbosity": { "ast_hits": [5], "rules": [] },
-          "import_cycles": { "imports": [] }
+          "cc": {
+            "functions": [
+              {
+                "name": "f",
+                "cc": 13,
+                "sloc": 26,
+                "start": 1,
+                "end": 26
+              }
+            ],
+            "cc_max": 13,
+            "cc_avg": 13.0
+          },
+          "complexity": {
+            "mass": 66.2872536767062,
+            "erosion": 1.0,
+            "functions_over_10": 1
+          },
+          "duplication": {
+            "clone_lines": 0
+          },
+          "import_cycles": {
+            "imports": []
+          },
+          "loc": {
+            "loc": 26,
+            "sloc": 26,
+            "blank": 0,
+            "comment": 0
+          },
+          "verbosity": {
+            "ast_hits": [],
+            "rules": [
+              "empty-except-pass",
+              "bare-except",
+              "print-debug",
+              "console-log",
+              "any-cast",
+              "todo-stub",
+              "commented-code"
+            ]
+          }
+        },
+        "b.py": {
+          "cc": {
+            "functions": [],
+            "cc_max": 0,
+            "cc_avg": 0.0
+          },
+          "complexity": {
+            "mass": 0,
+            "erosion": 0.0,
+            "functions_over_10": 0
+          },
+          "duplication": {
+            "clone_lines": 8
+          },
+          "import_cycles": {
+            "imports": [
+              "a.py"
+            ]
+          },
+          "loc": {
+            "loc": 8,
+            "sloc": 8,
+            "blank": 0,
+            "comment": 0
+          },
+          "verbosity": {
+            "ast_hits": [
+              2,
+              4,
+              6,
+              8
+            ],
+            "rules": [
+              "empty-except-pass",
+              "bare-except",
+              "print-debug",
+              "console-log",
+              "any-cast",
+              "todo-stub",
+              "commented-code"
+            ]
+          }
         }
       },
-      "commit": { "loc": 40, "verbosity": 0.02, "erosion": 0.5, "functions": 1, "cc_avg": 14.0 }
+      "repo": {
+        "cc": {},
+        "complexity": {},
+        "duplication": {
+          "clone_lines_by_file": {}
+        },
+        "import_cycles": {
+          "cycles": [],
+          "files_in_cycles": [],
+          "cycle_count": 0
+        },
+        "loc": {},
+        "verbosity": {}
+      },
+      "commit": {
+        "loc": 34,
+        "verbosity": 0.23529411764705882,
+        "erosion": 1.0,
+        "functions": 2,
+        "cc_avg": 13.0
+      }
+    },
+    {
+      "sha": "15e4a59971df0ce2ea175786fc74bd03a7499520",
+      "author": "t",
+      "email": "t@e.com",
+      "time": 1790673140,
+      "subject": "clone it",
+      "body": "",
+      "permalink": "https://github.com/org/repo/commit/15e4a59971df0ce2ea175786fc74bd03a7499520",
+      "files": {
+        "a.py": {
+          "cc": {
+            "functions": [
+              {
+                "name": "f",
+                "cc": 13,
+                "sloc": 26,
+                "start": 1,
+                "end": 26
+              }
+            ],
+            "cc_max": 13,
+            "cc_avg": 13.0
+          },
+          "complexity": {
+            "mass": 66.2872536767062,
+            "erosion": 1.0,
+            "functions_over_10": 1
+          },
+          "duplication": {
+            "clone_lines": 0
+          },
+          "import_cycles": {
+            "imports": []
+          },
+          "loc": {
+            "loc": 26,
+            "sloc": 26,
+            "blank": 0,
+            "comment": 0
+          },
+          "verbosity": {
+            "ast_hits": [],
+            "rules": [
+              "empty-except-pass",
+              "bare-except",
+              "print-debug",
+              "console-log",
+              "any-cast",
+              "todo-stub",
+              "commented-code"
+            ]
+          }
+        },
+        "b.py": {
+          "cc": {
+            "functions": [],
+            "cc_max": 0,
+            "cc_avg": 0.0
+          },
+          "complexity": {
+            "mass": 0,
+            "erosion": 0.0,
+            "functions_over_10": 0
+          },
+          "duplication": {
+            "clone_lines": 8
+          },
+          "import_cycles": {
+            "imports": [
+              "a.py"
+            ]
+          },
+          "loc": {
+            "loc": 8,
+            "sloc": 8,
+            "blank": 0,
+            "comment": 0
+          },
+          "verbosity": {
+            "ast_hits": [
+              2,
+              4,
+              6,
+              8
+            ],
+            "rules": [
+              "empty-except-pass",
+              "bare-except",
+              "print-debug",
+              "console-log",
+              "any-cast",
+              "todo-stub",
+              "commented-code"
+            ]
+          }
+        },
+        "c.py": {
+          "cc": {
+            "functions": [],
+            "cc_max": 0,
+            "cc_avg": 0.0
+          },
+          "complexity": {
+            "mass": 0,
+            "erosion": 0.0,
+            "functions_over_10": 0
+          },
+          "duplication": {
+            "clone_lines": 8
+          },
+          "import_cycles": {
+            "imports": [
+              "b.py"
+            ]
+          },
+          "loc": {
+            "loc": 9,
+            "sloc": 9,
+            "blank": 0,
+            "comment": 0
+          },
+          "verbosity": {
+            "ast_hits": [],
+            "rules": [
+              "empty-except-pass",
+              "bare-except",
+              "print-debug",
+              "console-log",
+              "any-cast",
+              "todo-stub",
+              "commented-code"
+            ]
+          }
+        }
+      },
+      "repo": {
+        "cc": {},
+        "complexity": {},
+        "duplication": {
+          "clone_lines_by_file": {}
+        },
+        "import_cycles": {
+          "cycles": [],
+          "files_in_cycles": [],
+          "cycle_count": 0
+        },
+        "loc": {},
+        "verbosity": {}
+      },
+      "commit": {
+        "loc": 43,
+        "verbosity": 0.37209302325581395,
+        "erosion": 1.0,
+        "functions": 2,
+        "cc_avg": 13.0
+      }
     }
   ]
 }

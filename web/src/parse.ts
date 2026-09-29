@@ -29,6 +29,72 @@ export function trajectoryOf(commits: HistorianCommit[]): Trajectory {
   };
 }
 
+/** Per-step velocity: first-difference of V/E/LOC between consecutive commits. */
+export interface CommitVelocity {
+  sha: string;
+  dV: number;
+  dE: number;
+  dLoc: number;
+}
+
+export function velocities(commits: HistorianCommit[]): CommitVelocity[] {
+  return commits.map((c, i) => ({
+    sha: c.sha,
+    dV: i === 0 ? 0 : c.commit.verbosity - commits[i - 1].commit.verbosity,
+    dE: i === 0 ? 0 : c.commit.erosion - commits[i - 1].commit.erosion,
+    dLoc: i === 0 ? 0 : c.commit.loc - commits[i - 1].commit.loc,
+  }));
+}
+
+export type SortKey =
+  | "index"
+  | "sha"
+  | "date"
+  | "author"
+  | "subject"
+  | "verbosity"
+  | "erosion"
+  | "loc"
+  | "cc_avg";
+
+/**
+ * Stable sort of commits. Ties always break by original commit order
+ * (chronological index), never by sha or subject, so equal rows keep
+ * their trajectory position regardless of sort direction.
+ */
+export function sortCommits(
+  commits: HistorianCommit[],
+  key: SortKey,
+  dir: 1 | -1,
+): HistorianCommit[] {
+  if (key === "index") {
+    const out = [...commits];
+    return dir === 1 ? out : out.reverse();
+  }
+  const val = (c: HistorianCommit): string | number => {
+    switch (key) {
+      case "sha": return c.sha;
+      case "date": return c.time;
+      case "author": return c.author.toLowerCase();
+      case "subject": return c.subject.toLowerCase();
+      case "verbosity": return c.commit.verbosity;
+      case "erosion": return c.commit.erosion;
+      case "loc": return c.commit.loc;
+      case "cc_avg": return c.commit.cc_avg;
+    }
+  };
+  return commits
+    .map((c, i) => ({ c, i }))
+    .sort((a, b) => {
+      const va = val(a.c);
+      const vb = val(b.c);
+      const cmp = va < vb ? -1 : va > vb ? 1 : 0;
+      if (cmp !== 0) return cmp * dir;
+      return a.i - b.i; // commit-order tiebreak (stable)
+    })
+    .map(({ c }) => c);
+}
+
 export function parseHistorian(raw: unknown): HistorianData {
   if (typeof raw !== "object" || raw === null) throw new Error("JSON must be an object");
   const d = raw as Record<string, unknown>;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyFilters, linearFit, parseHistorian, trajectoryOf } from "./parse";
+import { applyFilters, linearFit, parseHistorian, sortCommits, trajectoryOf, velocities } from "./parse";
 import type { HistorianCommit } from "./types";
 
 const mk = (over: Partial<HistorianCommit>): HistorianCommit => ({
@@ -38,6 +38,40 @@ describe("trajectoryOf", () => {
     expect(t.delta_v).toBeCloseTo(0.2);
     expect(t.delta_e).toBeCloseTo(0.4);
     expect(t.beta_v).toBeCloseTo(0.2);
+  });
+  it("empty", () => {
+    expect(trajectoryOf([])).toEqual({ delta_v: 0, delta_e: 0, beta_v: 0, beta_e: 0 });
+  });
+});
+
+describe("velocities", () => {
+  it("first-differences, first row zero", () => {
+    const cs = [
+      mk({ sha: "a", commit: { loc: 10, verbosity: 0.1, erosion: 0, functions: 1, cc_avg: 1 } }),
+      mk({ sha: "b", commit: { loc: 14, verbosity: 0.3, erosion: 0.5, functions: 1, cc_avg: 1 } }),
+    ];
+    const v = velocities(cs);
+    expect(v[0]).toEqual({ sha: "a", dV: 0, dE: 0, dLoc: 0 });
+    expect(v[1].dV).toBeCloseTo(0.2);
+    expect(v[1].dE).toBeCloseTo(0.5);
+    expect(v[1].dLoc).toBe(4);
+  });
+});
+
+describe("sortCommits", () => {
+  const cs = [
+    mk({ sha: "b", author: "bob", subject: "zebra", time: 2, commit: { loc: 5, verbosity: 0.5, erosion: 0, functions: 1, cc_avg: 1 } }),
+    mk({ sha: "a", author: "alice", subject: "apple", time: 1, commit: { loc: 9, verbosity: 0.1, erosion: 0.2, functions: 1, cc_avg: 3 } }),
+    mk({ sha: "c", author: "alice", subject: "mango", time: 3, commit: { loc: 9, verbosity: 0.1, erosion: 0.1, functions: 1, cc_avg: 2 } }),
+  ];
+  it("sorts by key both directions", () => {
+    expect(sortCommits(cs, "author", 1).map((c) => c.sha)).toEqual(["a", "c", "b"]);
+    expect(sortCommits(cs, "loc", -1).map((c) => c.sha)).toEqual(["a", "c", "b"]);
+  });
+  it("ties break by commit order, not sha", () => {
+    // a and c tie on loc and verbosity; original order is b(0), a(1), c(2) -> a before c either way
+    expect(sortCommits(cs, "verbosity", 1).map((c) => c.sha)).toEqual(["a", "c", "b"]);
+    expect(sortCommits(cs, "verbosity", -1).map((c) => c.sha)).toEqual(["b", "a", "c"]);
   });
 });
 
