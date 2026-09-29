@@ -37,13 +37,15 @@ def main():
             f"    if x == {i}:\n        x += 1\n" for i in range(12)) + "    return x\n")
         _commit(repo, "complexify", {"a.py": branchy,
                                      "b.py": "import a\nprint('debug')\n" * 4})
-        _commit(repo, "clone it", {"a.py": branchy,
+        _commit(repo, "clone it", {"a.py": "import c\n" + branchy,
                                    "b.py": "import a\nprint('debug')\n" * 4,
                                    "c.py": "import b\n" + "x = 1\n" * 8})
         data = run(str(repo), CFG)
     out = Path(__file__).parent / "sample.json"
     out.write_text(json.dumps(data, indent=2, default=str))
-    print(f"wrote {len(data['commits'])} commits -> {out}")
+    dst = Path(__file__).parent / "src" / "sample.json"
+    dst.write_text(json.dumps(data, indent=2, default=str))
+    print(f"wrote {len(data['commits'])} commits -> {out} + {dst}")
 
 
 if __name__ == "__main__":

@@ -3,21 +3,29 @@
     "tool": "historian",
     "cc_threshold": 10,
     "trajectory": {
-      "delta_v": 0.37209302325581395,
+      "delta_v": 0.36363636363636365,
       "delta_e": 1.0,
-      "beta_v": 0.18604651162790697,
+      "beta_v": 0.18181818181818182,
       "beta_e": 0.5
     }
   },
+  "config": {
+    "cc_threshold": 10,
+    "codegen": null,
+    "github_url": "https://github.com/org/repo",
+    "plugins": {},
+    "include": [],
+    "exclude": []
+  },
   "commits": [
     {
-      "sha": "bf8981ec126c56a708f7f089f1c55ff40c9b134a",
+      "sha": "637959121ef21b012f337320f7770c83b761e298",
       "author": "t",
       "email": "t@e.com",
-      "time": 1790673140,
+      "time": 1790674146,
       "subject": "initial",
       "body": "",
-      "permalink": "https://github.com/org/repo/commit/bf8981ec126c56a708f7f089f1c55ff40c9b134a",
+      "permalink": "https://github.com/org/repo/commit/637959121ef21b012f337320f7770c83b761e298",
       "files": {
         "a.py": {
           "cc": {
@@ -87,13 +95,13 @@
       }
     },
     {
-      "sha": "67c5835a23bfe0362631ed78c7084a3bc98fd447",
+      "sha": "fdceb930357713467c816dfbe60cd6e5d8511ddf",
       "author": "t",
       "email": "t@e.com",
-      "time": 1790673140,
+      "time": 1790674146,
       "subject": "complexify",
       "body": "",
-      "permalink": "https://github.com/org/repo/commit/67c5835a23bfe0362631ed78c7084a3bc98fd447",
+      "permalink": "https://github.com/org/repo/commit/fdceb930357713467c816dfbe60cd6e5d8511ddf",
       "files": {
         "a.py": {
           "cc": {
@@ -206,13 +214,13 @@
       }
     },
     {
-      "sha": "15e4a59971df0ce2ea175786fc74bd03a7499520",
+      "sha": "fe305f24f03daec33cce5c77db554d0975b3da35",
       "author": "t",
       "email": "t@e.com",
-      "time": 1790673140,
+      "time": 1790674146,
       "subject": "clone it",
       "body": "",
-      "permalink": "https://github.com/org/repo/commit/15e4a59971df0ce2ea175786fc74bd03a7499520",
+      "permalink": "https://github.com/org/repo/commit/fe305f24f03daec33cce5c77db554d0975b3da35",
       "files": {
         "a.py": {
           "cc": {
@@ -221,8 +229,8 @@
                 "name": "f",
                 "cc": 13,
                 "sloc": 26,
-                "start": 1,
-                "end": 26
+                "start": 2,
+                "end": 27
               }
             ],
             "cc_max": 13,
@@ -237,11 +245,13 @@
             "clone_lines": 0
           },
           "import_cycles": {
-            "imports": []
+            "imports": [
+              "c.py"
+            ]
           },
           "loc": {
-            "loc": 26,
-            "sloc": 26,
+            "loc": 27,
+            "sloc": 27,
             "blank": 0,
             "comment": 0
           },
@@ -347,16 +357,27 @@
           "clone_lines_by_file": {}
         },
         "import_cycles": {
-          "cycles": [],
-          "files_in_cycles": [],
-          "cycle_count": 0
+          "cycles": [
+            [
+              "a.py",
+              "c.py",
+              "b.py",
+              "a.py"
+            ]
+          ],
+          "files_in_cycles": [
+            "a.py",
+            "b.py",
+            "c.py"
+          ],
+          "cycle_count": 1
         },
         "loc": {},
         "verbosity": {}
       },
       "commit": {
-        "loc": 43,
-        "verbosity": 0.37209302325581395,
+        "loc": 44,
+        "verbosity": 0.36363636363636365,
         "erosion": 1.0,
         "functions": 2,
         "cc_avg": 13.0

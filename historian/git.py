@@ -43,5 +43,6 @@ def lang_of(path):
     if p.endswith(".py"): return "py"
     if p.endswith((".js", ".jsx", ".mjs", ".cjs")): return "js"
     if p.endswith((".ts", ".tsx")): return "ts"
-    if p.endswith((".java", ".go", ".rs", ".c", ".cpp", ".h")): return "other-code"
+    if p.endswith((".sh", ".bash")): return "sh"
+    if p.endswith((".java", ".go", ".rs", ".c", ".cpp", ".h", ".hpp")): return "other-code"
     return "other"

@@ -73,7 +73,7 @@ def run(repo, config, max_commits=None, run_codegen=False):
         files, funcs, ast_l, clone_l, repo_m = analyze_commit(
             repo, c["sha"], plugins, config.get("include", []), config.get("exclude", []))
         loc = sum(fm.get("loc", {}).get("loc", 0) for fm in files.values())
-        v = formulas.verbosity(ast_l, clone_l, loc or sum(len(s.splitlines()) for s in repo_m.values()) or 1)
+        v = formulas.verbosity(ast_l, clone_l, loc)
         e = formulas.erosion(funcs, cc_thr)
         cc_vals = [f.cc for f in funcs]
         v_hist.append(v); e_hist.append(e)
@@ -88,4 +88,9 @@ def run(repo, config, max_commits=None, run_codegen=False):
                      "trajectory": {"delta_v": (v_hist[-1]-v_hist[0]) if v_hist else 0.0,
                                     "delta_e": (e_hist[-1]-e_hist[0]) if e_hist else 0.0,
                                     "beta_v": bv, "beta_e": be}},
+            "config": {"cc_threshold": cc_thr, "codegen": config.get("codegen"),
+                       "github_url": config.get("github_url"),
+                       "plugins": config.get("plugins"),
+                       "include": config.get("include", []),
+                       "exclude": config.get("exclude", [])},
             "commits": out}

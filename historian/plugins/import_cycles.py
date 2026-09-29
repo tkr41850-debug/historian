@@ -59,13 +59,11 @@ class ImportCyclesPlugin(MetricPlugin):
         return FileResult(file_metrics={"imports": sorted(edges)})
 
     def analyze_repo(self, files: dict) -> dict:
+        from historian.git import lang_of
         names = {os.path.basename(p): p for p in files}
         graph = {}
         for path, src in files.items():
-            lang = "py" if path.endswith(".py") else \
-                   "ts" if path.endswith((".ts", ".tsx")) else \
-                   "js" if path.endswith((".js", ".jsx")) else "other"
-            r = self.analyze_file(path, src, lang)
+            r = self.analyze_file(path, src, lang_of(path))
             graph[path] = {names.get(os.path.basename(e), e)
                            for e in r.file_metrics["imports"]}
             graph[path] = {g for g in graph[path] if g in files}
