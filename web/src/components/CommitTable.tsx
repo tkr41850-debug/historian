@@ -92,7 +92,7 @@ export default function CommitTable({
         >
           {rows.map((c, i) => (
             <tr
-              key={c.sha}
+              key={`${c.sha}#${commits.indexOf(c)}`}
               onClick={() => onSelect(c.sha)}
               style={{
                 cursor: "pointer",
@@ -105,7 +105,7 @@ export default function CommitTable({
                 borderBottom: "1px solid #eee",
               }}
             >
-              <td>{i + 1}</td>
+              <td title={`chronological #${commits.indexOf(c) + 1}`}>{commits.indexOf(c) + 1}</td>
               <td>
                 {c.permalink ? (
                   <a

@@ -44,7 +44,7 @@ export default function TrajectoryChart({
       <path d={path(commits.map((_, i) => i), es, max)} fill="none" stroke="#e06565" strokeWidth={2} strokeDasharray="6 3" />
       {commits.map((c, i) => (
         <circle
-          key={c.sha}
+          key={`${c.sha}#${i}`}
           cx={X(i)}
           cy={Y(c.commit.verbosity)}
           r={c.sha === selected ? 6 : 3.5}
@@ -53,6 +53,21 @@ export default function TrajectoryChart({
           onClick={() => onSelect(c.sha)}
         >
           <title>{`${c.sha.slice(0, 8)} ${c.subject} (V=${c.commit.verbosity.toFixed(4)} E=${c.commit.erosion.toFixed(4)})`}</title>
+        </circle>
+      ))}
+      {commits.map((c, i) => (
+        <circle
+          key={`e${c.sha}#${i}`}
+          cx={X(i)}
+          cy={Y(c.commit.erosion)}
+          r={c.sha === selected ? 5 : 2.5}
+          fill="none"
+          stroke="#e06565"
+          strokeWidth={1.5}
+          style={{ cursor: "pointer" }}
+          onClick={() => onSelect(c.sha)}
+        >
+          <title>{`${c.sha.slice(0, 8)} ${c.subject} (E=${c.commit.erosion.toFixed(4)} V=${c.commit.verbosity.toFixed(4)})`}</title>
         </circle>
       ))}
       <g fontSize={12}>

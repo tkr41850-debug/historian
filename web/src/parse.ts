@@ -95,22 +95,56 @@ export function sortCommits(
     .map(({ c }) => c);
 }
 
+function num(v: unknown, what: string): number {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  throw new Error(`${what} must be a finite number`);
+}
+
 export function parseHistorian(raw: unknown): HistorianData {
   if (typeof raw !== "object" || raw === null) throw new Error("JSON must be an object");
   const d = raw as Record<string, unknown>;
   if (!Array.isArray(d.commits)) throw new Error("JSON missing commits[] (run python -m historian --out historian.json)");
-  const commits = (d.commits as HistorianCommit[]).map((c, i) => {
-    if (!c.sha || !c.commit) throw new Error(`commit[${i}] missing sha/commit`);
-    return c;
+  const commits = (d.commits as unknown[]).map((rawC, i) => {
+    if (typeof rawC !== "object" || rawC === null || Array.isArray(rawC))
+      throw new Error(`commit[${i}] must be an object`);
+    const c = rawC as Record<string, unknown>;
+    if (typeof c.sha !== "string" || !c.sha) throw new Error(`commit[${i}] missing sha`);
+    if (typeof c.time !== "number" || !Number.isFinite(c.time))
+      throw new Error(`commit[${i}] (${String(c.sha).slice(0, 8)}) has non-numeric time`);
+    const s = c.commit;
+    if (typeof s !== "object" || s === null || Array.isArray(s))
+      throw new Error(`commit[${i}] (${String(c.sha).slice(0, 8)}) missing commit summary`);
+    const sm = s as Record<string, unknown>;
+    const tag = `commit[${i}] (${String(c.sha).slice(0, 8)})`;
+    const files = c.files;
+    return {
+      sha: c.sha,
+      time: c.time,
+      author: typeof c.author === "string" ? c.author : "?",
+      email: typeof c.email === "string" ? c.email : "",
+      subject: typeof c.subject === "string" ? c.subject : "",
+      body: typeof c.body === "string" ? c.body : "",
+      permalink: typeof c.permalink === "string" ? c.permalink : null,
+      files: (typeof files === "object" && files !== null && !Array.isArray(files) ? files : {}) as HistorianCommit["files"],
+      repo: (typeof c.repo === "object" && c.repo !== null ? c.repo : undefined) as HistorianCommit["repo"],
+      commit: {
+        loc: num(sm.loc, `${tag}.commit.loc`),
+        verbosity: num(sm.verbosity, `${tag}.commit.verbosity`),
+        erosion: num(sm.erosion, `${tag}.commit.erosion`),
+        functions: num(sm.functions, `${tag}.commit.functions`),
+        cc_avg: num(sm.cc_avg, `${tag}.commit.cc_avg`),
+      },
+    } satisfies HistorianCommit;
   });
-  const meta =
-    (d.meta as HistorianData["meta"]) ?? {
-      tool: "historian",
-      cc_threshold: 10,
-      trajectory: trajectoryOf(commits),
-    };
-  if (!meta.trajectory) meta.trajectory = trajectoryOf(commits);
-  return { meta, commits };
+  // copy, never mutate the caller's object
+  const metaRaw = (d.meta ?? {}) as Record<string, unknown>;
+  const meta = {
+    tool: typeof metaRaw.tool === "string" ? metaRaw.tool : "historian",
+    cc_threshold: typeof metaRaw.cc_threshold === "number" ? metaRaw.cc_threshold : 10,
+    ...metaRaw,
+    trajectory: (metaRaw.trajectory as Trajectory | undefined) ?? trajectoryOf(commits),
+  };
+  return { meta, commits } as HistorianData;
 }
 
 export interface Filters {
@@ -120,19 +154,30 @@ export interface Filters {
   to: string;
 }
 
-export function applyFilters(commits: HistorianCommit[], f: Filters): HistorianCommit[] {
+export interface FilterResult {
+  commits: HistorianCommit[];
+  badDate: boolean;
+}
+
+export function applyFilters(commits: HistorianCommit[], f: Filters): FilterResult {
   const q = f.search.trim().toLowerCase();
   const from = f.from ? Date.parse(f.from + "T00:00:00Z") / 1000 : -Infinity;
   const to = f.to ? Date.parse(f.to + "T23:59:59Z") / 1000 : Infinity;
-  return commits.filter((c) => {
-    if (f.author && c.author !== f.author) return false;
-    if (c.time < from || c.time > to) return false;
-    if (q) {
-      const hay = `${c.subject} ${c.body} ${c.sha} ${c.author} ${c.email}`.toLowerCase();
-      if (!hay.includes(q)) return false;
-    }
-    return true;
-  });
+  const badDate =
+    (f.from !== "" && !Number.isFinite(from)) || (f.to !== "" && !Number.isFinite(to));
+  if (badDate) return { commits: [], badDate: true };
+  return {
+    badDate: false,
+    commits: commits.filter((c) => {
+      if (f.author && c.author !== f.author) return false;
+      if (c.time < from || c.time > to) return false;
+      if (q) {
+        const hay = `${c.subject} ${c.body} ${c.sha} ${c.author} ${c.email}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    }),
+  };
 }
 
 export function fmt(n: number, digits = 4): string {
@@ -141,5 +186,8 @@ export function fmt(n: number, digits = 4): string {
 }
 
 export function fmtDate(epochSec: number): string {
-  return new Date(epochSec * 1000).toISOString().slice(0, 10);
+  if (!Number.isFinite(epochSec)) return "—";
+  const d = new Date(epochSec * 1000);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toISOString().slice(0, 10);
 }

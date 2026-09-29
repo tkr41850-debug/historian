@@ -36,7 +36,8 @@ export default function CommitDetail({
   if (!commit)
     return <p style={{ color: "#666" }}>Click a commit (chart or table) to inspect it.</p>;
 
-  const rows = Object.entries(commit.files).sort(([a], [b]) => a.localeCompare(b));
+  const files = commit.files && typeof commit.files === "object" ? commit.files : {};
+  const rows = Object.entries(files).sort(([a], [b]) => a.localeCompare(b));
   const cyc = cyclesOf(commit);
 
   return (
@@ -112,8 +113,8 @@ export default function CommitDetail({
                   <td style={{ textAlign: "right" }}>{m.duplication?.clone_lines ?? "—"}</td>
                   <td style={{ maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis" }}>
                     {(m.verbosity?.ast_hits ?? []).slice(0, 12).join(", ")}
-                    {m.verbosity && m.verbosity.rules.length > 0 && (
-                      <span style={{ color: "#888" }}> ({m.verbosity.rules.length} rules)</span>
+                    {(m.verbosity?.rules?.length ?? 0) > 0 && (
+                      <span style={{ color: "#888" }}> ({m.verbosity?.rules?.length} rules)</span>
                     )}
                   </td>
                 </tr>

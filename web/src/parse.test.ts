@@ -84,6 +84,22 @@ describe("parseHistorian", () => {
     const d = parseHistorian({ meta: { tool: "h", cc_threshold: 10 }, commits: [] } as never);
     expect(d.meta.trajectory.delta_v).toBe(0);
   });
+  it("rejects mistyped internals with index context", () => {
+    expect(() =>
+      parseHistorian({ commits: [mk({ commit: { loc: "x" } as never })] }),
+    ).toThrow(/commit\[0\].*loc/);
+    expect(() =>
+      parseHistorian({ commits: [mk({ time: "yesterday" as never })] }),
+    ).toThrow(/non-numeric time/);
+    expect(() => parseHistorian({ commits: [null] })).toThrow(/commit\[0\]/);
+  });
+  it("coerces missing strings, defaults files, copies meta", () => {
+    const src = { meta: { tool: "h" }, commits: [{ ...mk({}), author: undefined, files: null }] };
+    const d = parseHistorian(src as never);
+    expect(d.commits[0].author).toBe("?");
+    expect(d.commits[0].files).toEqual({});
+    expect(d.meta).not.toBe(src.meta);
+  });
 });
 
 describe("applyFilters", () => {
@@ -91,11 +107,18 @@ describe("applyFilters", () => {
     mk({ sha: "aa", author: "alice", subject: "fix bug", time: 1700000000 }),
     mk({ sha: "bb", author: "bob", subject: "add feature", time: 1700100000 }),
   ];
+  const Pass = { author: "", search: "", from: "", to: "" };
   it("author/search/date", () => {
-    expect(applyFilters(cs, { author: "alice", search: "", from: "", to: "" })).toHaveLength(1);
-    expect(applyFilters(cs, { author: "", search: "feature", from: "", to: "" })[0].sha).toBe("bb");
+    expect(applyFilters(cs, { ...Pass, author: "alice" }).commits).toHaveLength(1);
+    expect(applyFilters(cs, { ...Pass, search: "feature" }).commits[0].sha).toBe("bb");
     expect(
-      applyFilters(cs, { author: "", search: "", from: "2023-11-16", to: "" }),
+      applyFilters(cs, { ...Pass, from: "2023-11-16" }).commits,
     ).toHaveLength(1);
+  });
+  it("bad date flags instead of silently ignoring", () => {
+    const r = applyFilters(cs, { ...Pass, from: "not-a-date" });
+    expect(r.badDate).toBe(true);
+    expect(r.commits).toHaveLength(0);
+    expect(applyFilters(cs, Pass).badDate).toBe(false);
   });
 });

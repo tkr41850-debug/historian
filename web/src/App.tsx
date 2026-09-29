@@ -59,8 +59,15 @@ export default function App() {
 
   const commits = data?.commits ?? [];
   const authors = useMemo(() => [...new Set(commits.map((c) => c.author))].sort(), [commits]);
-  const filtered = useMemo(() => applyFilters(commits, filters), [commits, filters]);
-  const traj = data?.meta.trajectory ?? trajectoryOf(filtered);
+  const { commits: filtered, badDate } = useMemo(
+    () => applyFilters(commits, filters),
+    [commits, filters],
+  );
+  const filtering = filters.author !== "" || filters.search !== "" || filters.from !== "" || filters.to !== "";
+  // Stat cards follow the visible (filtered) series so ΔV/ΔE/β stay
+  // correct under filters; fall back to the full-file trajectory only
+  // when nothing is filtered.
+  const traj = filtering || !data?.meta.trajectory ? trajectoryOf(filtered) : data.meta.trajectory;
   const sel =
     selected != null
       ? (filtered.find((c) => c.sha === selected) ?? null)
@@ -123,6 +130,11 @@ export default function App() {
                 count={`${filtered.length}/${commits.length} commits`}
               />
               <CommitTable commits={filtered} selected={sel?.sha ?? null} onSelect={setSelected} />
+              {badDate && (
+                <p role="alert" style={{ color: "#a00" }}>
+                  Ignoring an invalid from/to date — use yyyy-mm-dd.
+                </p>
+              )}
 
               <h2>Commit detail</h2>
               <CommitDetail commit={sel} onClose={() => setSelected(null)} />
