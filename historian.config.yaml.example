@@ -1,0 +1,25 @@
+# Historian config. Copy to historian.config.yaml and edit.
+# Codegen runs FIRST (before metrics) when --codegen is passed.
+
+# Command run with cwd=<repo> before analysis. Example: "npm run codegen".
+# Leave as null to skip codegen.
+codegen: null
+
+# Base URL for permalink generation, e.g. https://github.com/org/repo
+github_url: null
+
+# CC threshold for erosion (paper: 10)
+cc_threshold: 10
+
+# Enable/disable drop-in plugins (filename stem -> enabled)
+plugins:
+  loc: true
+  cc: true
+  complexity: true
+  duplication: true
+  import_cycles: true
+  verbosity: true
+
+# Only analyze these paths (gitignore-style substrings); empty = all
+include: []
+exclude: ["node_modules", ".git", "dist", "__pycache__"]
