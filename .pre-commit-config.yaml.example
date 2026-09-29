@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: historian
+        name: historian (codegen first, then metrics)
+        entry: uv run --with . python -m historian --repo . --out historian.json --codegen --config historian.config.yaml
+        language: system
+        pass_filenames: false
+        always_run: true
