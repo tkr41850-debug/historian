@@ -19,11 +19,55 @@ Formulas (from pasted paper excerpt):
   zero-dep table lens (`web/minimal/`)
 - `historian.config.yaml` — codegen + plugin enable/disable + github URL
 
-## Quickstart
+## Install
+
+Versions: Python >= 3.10, Node 22 (CI pins 22 via
+actions/setup-node@v6; newer local node is untested), just >= 1.36,
+uv >= 0.5.
 
 ```bash
-uv sync
+curl -LsSf astral.sh/uv/install.sh | sh
+# node 22 via nvm/fnm/your package manager
+cargo install just            # or https://just.systems
+just --version                # verify just is on PATH
+
+git clone <this-repo> && cd historian
+node --version                # want v22.x to match CI
+uv sync                       # python deps (lizard, pyyaml) + dev group on demand
 cp historian.config.yaml.example historian.config.yaml  # set github_url
+```
+
+No `historian.config.yaml` in the repo root is expected — you create it
+from the `.example` (it is gitignored). Without `--config`, analysis runs
+with runner defaults and no permalinks.
+
+## Standard use (just recipes)
+
+```bash
+just                               # same as just --list: all recipes
+just analyze /path/to/repo         # -> {repo}-history.json (uses historian.config.yaml if present)
+just analyze /path/to/repo out=my.json config=other.yaml
+just analyze /path/to/repo commits=50 codegen=on plugins="verbosity=off"
+just serve                         # vite dev server for local editing (root path /)
+just preview                       # prod build preview, same relative ./ base Pages serves
+just sample                        # regenerate web/sample.json + web/src/sample.json fixtures
+just check                         # full suite: pytest + build + vitest + smoke
+```
+
+`analyze` knobs:
+
+- `commits=N` — analyze last N commits (default: all).
+- `codegen=on|off` — run the config `codegen:` command first, or skip it
+  (default: neither flag, config intent stands).
+- `plugins="a=on b=off"` — per-plugin overrides, space-separated pairs
+  (default: `plugins:` map in config).
+
+For `--include`/`--exclude` path filters or repeated `--plugin` flags,
+call the raw CLI below instead of `just analyze`.
+
+Raw CLI without just:
+
+```bash
 uv run python -m historian --repo /path/to/repo --out historian.json \
   --config historian.config.yaml
 ```
@@ -84,7 +128,14 @@ Add a test in `tests/test_plugins.py`.
 ## Web UI
 
 ```bash
-cd web && npm install && npm run dev      # dashboard (drag historian.json on)
+just serve                         # dashboard dev (drag historian.json on)
+just preview                       # prod build preview
 # or open web/minimal/index.html directly (no build)
-uv run python web/make_sample.py          # regenerate both sample.json copies
+just sample                        # regenerate both sample.json copies
 ```
+
+Deployed via GitHub Pages (`.github/workflows/ci-pages.yml`):
+dashboard at the site root, table lens at `minimal/`, shared
+fixture at `sample.json`. The Vite `base: "./"` keeps every asset
+relative, so the site works from a subpath
+(`https://HOST/subpath/`) as well as the domain root.

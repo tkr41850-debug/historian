@@ -6,7 +6,8 @@ SEP = "\x1f"
 LOG_FMT = f"%H{SEP}%an{SEP}%ae{SEP}%at{SEP}%s{SEP}%b%x1e"
 
 def _git(repo, *args):
-    return subprocess.run(["git", "-C", repo, *args], capture_output=True, text=True, check=True).stdout
+    return subprocess.run(["git", "-C", repo, *args], capture_output=True, text=True,
+                          errors="surrogateescape", check=True).stdout
 
 def list_commits(repo, max_commits=None):
     out = _git(repo, "log", f"--format={LOG_FMT}", "--no-merges")

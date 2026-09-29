@@ -6,12 +6,20 @@ from pathlib import Path
 def load_config(path):
     if not path:
         return {}
+    p = Path(path)
+    if not p.is_file():
+        print(f"config not found: {path}", file=sys.stderr)
+        sys.exit(2)
     try:
         import yaml
     except ImportError:
         print("pyyaml needed for config files: pip install pyyaml", file=sys.stderr)
         sys.exit(2)
-    return yaml.safe_load(Path(path).read_text()) or {}
+    try:
+        return yaml.safe_load(p.read_text()) or {}
+    except Exception as e:
+        print(f"invalid config {path}: {e}", file=sys.stderr)
+        sys.exit(2)
 
 def main(argv=None):
     from .runner import run

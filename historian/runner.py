@@ -37,7 +37,9 @@ def analyze_commit(repo, sha, plugins, include=(), exclude=()):
         if not _wanted(path, include, exclude):
             continue
         src = gitmod.read_blob(repo, sha, path)
-        if src is None or "\x00" in src:
+        # skip binary blobs (images, fonts, archives): surrogateescape
+        # round-trips undecodable bytes, so lone surrogates mark binary
+        if src is None or "\x00" in src or "\udc80" <= min(src, default="\x00") <= "\udcff":
             continue
         lang = gitmod.lang_of(path)
         repo_files[path] = src
@@ -67,7 +69,10 @@ def run(repo, config, max_commits=None, run_codegen=False):
     plugins = discover_plugins(config.get("plugins"))
     cc_thr = config.get("cc_threshold", 10)
     gh = (config.get("github_url") or "").rstrip("/")
-    commits = gitmod.list_commits(repo, max_commits)
+    try:
+        commits = gitmod.list_commits(repo, max_commits)
+    except subprocess.CalledProcessError:
+        raise SystemExit(f"not a git repo (or no commits): {repo}")
     out, v_hist, e_hist = [], [], []
     for i, c in enumerate(commits):
         files, funcs, ast_l, clone_l, repo_m = analyze_commit(

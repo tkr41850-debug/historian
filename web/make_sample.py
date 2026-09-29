@@ -18,13 +18,16 @@ def _git(cwd, *args):
     subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True)
 
 
-def _commit(cwd, msg, files):
+def _commit(cwd, msg, files, when="2024-01-02T00:00:00+00:00"):
     for name, content in files.items():
         p = Path(cwd) / name
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(content)
     _git(cwd, "add", "-A")
-    _git(cwd, "-c", "user.name=t", "-c", "user.email=t@e.com", "commit", "-m", msg)
+    env = {"GIT_AUTHOR_DATE": when, "GIT_COMMITTER_DATE": when}
+    subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@e.com",
+                    "commit", "-m", msg], cwd=cwd, check=True, capture_output=True,
+                   env={**dict(__import__("os").environ), **env})
 
 
 def main():

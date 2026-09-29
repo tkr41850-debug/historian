@@ -18,7 +18,13 @@ function throws(name, fn) {
 }
 
 const target = process.argv[2] || path.join(__dirname, '..', 'sample.json');
-const raw = JSON.parse(fs.readFileSync(target, 'utf8'));
+let raw;
+try {
+  raw = JSON.parse(fs.readFileSync(target, 'utf8'));
+} catch (e) {
+  console.error('cannot read ' + target + ' (' + e.code + '); regenerate with `just sample` or pass a historian.json path');
+  process.exit(2);
+}
 const { meta, commits } = H.parseHistory(raw);
 
 check('parses 3 commits', commits.length === 3);
