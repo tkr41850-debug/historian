@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Analyze a repo into {outdir}/history-{repo}.json.
+# Analyze a repo (output path resolved by the CLI: explicit out= wins,
+# else {outdir}/history-{repo}.json with outdir defaulting to ".").
 # Args: repo out outdir config commits codegen plugins jobs (empty = default).
-# out= wins over outdir= when both given. outdir defaults to ".".
 # Invoked via `bash scripts/analyze.sh ...` (explicit interpreter, so it
 # works even when temp dirs are mounted noexec, where just's shebang
 # recipes cannot execute).
@@ -31,14 +31,13 @@ codegen="${codegen#codegen=}"
 plugins="${plugins#plugins=}"
 jobs="${jobs#jobs=}"
 
-name="$(basename "$(realpath "$repo" 2>/dev/null || echo "$repo")" | sed 's/\.git$//')"
-[ "$name" = "." ] && name="$(basename "$PWD")"
-[ -z "$outdir" ] && outdir="."
-mkdir -p "$outdir"
-[ -z "$out" ] && out="${outdir}/history-${name}.json"
+# Output naming lives in historian/__main__.py resolve_out(); pass both
+# through and let explicit --out win there.
 [ -z "$cfg" ] && [ -f historian.config.yaml ] && cfg="historian.config.yaml"
 
-args=(--repo "$repo" --out "$out")
+args=(--repo "$repo")
+[ -n "$out" ] && args+=(--out "$out")
+[ -n "$outdir" ] && args+=(--outdir "$outdir")
 [ -n "$cfg" ] && args+=(--config "$cfg")
 [ -n "$commits" ] && args+=(--commits "$commits")
 case "$codegen" in
@@ -53,4 +52,3 @@ if [ -n "$plugins" ]; then
 fi
 [ -n "$jobs" ] && args+=(--jobs "$jobs")
 uv run python -m historian "${args[@]}"
-echo "wrote $out (config: ${cfg:-<none>})"
