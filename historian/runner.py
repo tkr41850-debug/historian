@@ -63,7 +63,7 @@ def analyze_commit(repo, sha, plugins, include=(), exclude=()):
             repo_metrics[p.name] = {}
     return files_out, all_funcs, ast_lines, clone_lines, repo_metrics
 
-def run(repo, config, max_commits=None, run_codegen=False):
+def run(repo, config, max_commits=None, run_codegen=False, progress=True):
     if run_codegen and config.get("codegen"):
         subprocess.run(config["codegen"], shell=True, cwd=repo, check=True)
     plugins = discover_plugins(config.get("plugins"))
@@ -74,6 +74,13 @@ def run(repo, config, max_commits=None, run_codegen=False):
     except subprocess.CalledProcessError:
         raise SystemExit(f"not a git repo (or no commits): {repo}")
     out, v_hist, e_hist = [], [], []
+    if progress:
+        try:
+            from tqdm import tqdm
+            commits = tqdm(commits, desc="analyzing commits", unit="commit",
+                           dynamic_ncols=True)
+        except ImportError:
+            pass
     for i, c in enumerate(commits):
         files, funcs, ast_l, clone_l, repo_m = analyze_commit(
             repo, c["sha"], plugins, config.get("include", []), config.get("exclude", []))

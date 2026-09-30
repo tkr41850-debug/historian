@@ -36,6 +36,8 @@ def main(argv=None):
     ap.add_argument("--plugin", dest="plugins", action="append", default=[],
                     metavar="name[=on|off]",
                     help="override plugin enable (repeatable), e.g. --plugin verbosity=off")
+    ap.add_argument("--no-progress", dest="progress", action="store_false",
+                    help="hide the tqdm commit progress bar")
     a = ap.parse_args(argv)
     cfg = load_config(a.config)
     if a.include is not None:
@@ -46,7 +48,12 @@ def main(argv=None):
         name, _, val = spec.partition("=")
         enabled = cfg.setdefault("plugins", {})
         enabled[name] = val.lower() not in ("0", "off", "false", "no")
-    data = run(a.repo, cfg, a.max_commits, a.codegen)
+    import json as _json
+    eff = {"codegen": cfg.get("codegen"), "github_url": cfg.get("github_url"),
+           "cc_threshold": cfg.get("cc_threshold", 10), "plugins": cfg.get("plugins"),
+           "include": cfg.get("include", []), "exclude": cfg.get("exclude", [])}
+    print(f"config: {_json.dumps(eff, default=str)}")
+    data = run(a.repo, cfg, a.max_commits, a.codegen, progress=a.progress)
     Path(a.out).write_text(json.dumps(data, indent=2, default=str))
     print(f"wrote {len(data['commits'])} commits -> {a.out}")
 
