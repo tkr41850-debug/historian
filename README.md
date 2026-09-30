@@ -45,9 +45,10 @@ with runner defaults and no permalinks.
 
 ```bash
 just                               # same as just --list: all recipes
-just analyze /path/to/repo         # -> {repo}-history.json (uses historian.config.yaml if present)
+just analyze /path/to/repo         # -> ./history-{repo}.json (uses historian.config.yaml if present)
+just analyze /path/to/repo outdir=/tmp/histories
 just analyze /path/to/repo out=my.json config=other.yaml
-just analyze /path/to/repo commits=50 codegen=on plugins="verbosity=off"
+just analyze /path/to/repo commits=50 codegen=on plugins="verbosity=off" jobs=4
 just serve                         # vite dev server for local editing (root path /)
 just preview                       # prod build preview, same relative ./ base Pages serves
 just sample                        # regenerate web/sample.json + web/src/sample.json fixtures
@@ -56,11 +57,15 @@ just check                         # full suite: pytest + build + vitest + smoke
 
 `analyze` knobs:
 
+- `out=FILE` — explicit output path (wins over `outdir`).
+- `outdir=DIR` — output directory, written as `{outdir}/history-{repo}.json`
+  (history- prefix groups analyses under ls sorting; default: cwd).
 - `commits=N` — analyze last N commits (default: all).
 - `codegen=on|off` — run the config `codegen:` command first, or skip it
   (default: neither flag, config intent stands).
 - `plugins="a=on b=off"` — per-plugin overrides, space-separated pairs
   (default: `plugins:` map in config).
+- `jobs=N` — parallel commit-analysis workers (default: all cpus; 1 = serial).
 
 For `--include`/`--exclude` path filters or repeated `--plugin` flags,
 call the raw CLI below instead of `just analyze`.
@@ -88,6 +93,8 @@ it); Shell (`.sh`/`.bash`) uses a built-in keyword heuristic.
 --include a b      only analyze paths containing these
 --exclude a b      skip paths containing these
 --plugin n=on|off  enable/disable one plugin (repeatable)
+--jobs N           parallel workers (default: all cpus; 1 = serial)
+--no-progress      disable the tqdm statusline
 ```
 
 Record shape: `{meta, config, commits:[{sha,time,author,email,

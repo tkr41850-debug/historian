@@ -11,7 +11,8 @@ from pathlib import Path
 from historian.runner import run
 
 CFG = {"codegen": None, "github_url": "https://github.com/org/repo",
-       "cc_threshold": 10, "plugins": {}, "include": [], "exclude": []}
+       "cc_threshold": 10, "plugins": {}, "include": [], "exclude": [],
+       "jobs": 1}  # pinned so the committed fixture is machine-independent
 
 
 def _git(cwd, *args):

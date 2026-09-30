@@ -15,7 +15,8 @@
     "github_url": "https://github.com/org/repo",
     "plugins": {},
     "include": [],
-    "exclude": []
+    "exclude": [],
+    "jobs": 1
   },
   "commits": [
     {
