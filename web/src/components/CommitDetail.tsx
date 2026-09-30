@@ -61,9 +61,11 @@ export default function CommitDetail({
         </button>
       </div>
       <p style={{ color: "#555", fontSize: 13 }}>
-        {commit.author} &lt;{commit.email}&gt; · {fmtDate(commit.time)} · LOC {commit.commit.loc} ·{" "}
-        V {fmt(commit.commit.verbosity)} · E {fmt(commit.commit.erosion)} · {commit.commit.functions} fns · CCavg{" "}
-        {fmt(commit.commit.cc_avg, 2)} ·{" "}
+        {commit.author} &lt;{commit.email}&gt; · {fmtDate(commit.time)} ·{" "}
+        <span className="num">
+          LOC {commit.commit.loc} · V {fmt(commit.commit.verbosity)} · E {fmt(commit.commit.erosion)} ·{" "}
+          {commit.commit.functions} fns · CCavg {fmt(commit.commit.cc_avg, 2)}
+        </span>{" "}·{" "}
         {commit.permalink ? (
           <a href={commit.permalink} target="_blank" rel="noreferrer">permalink</a>
         ) : (

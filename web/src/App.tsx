@@ -262,24 +262,40 @@ export default function App() {
               <h2>
                 Stats — <span style={{ color: focused.color }}>●</span> {focused.label}
               </h2>
-              <div style={{ display: "flex", gap: 16, flexWrap: "wrap", margin: "12px 0" }}>
+              <dl
+                style={{
+                  display: "flex",
+                  gap: 0,
+                  flexWrap: "wrap",
+                  margin: "12px 0",
+                  borderTop: "1px solid #ddd",
+                  borderBottom: "1px solid #ddd",
+                }}
+              >
                 {[
                   { math: "\\Delta V", value: traj.delta_v },
                   { math: "\\Delta E", value: traj.delta_e },
                   { math: "\\beta_V", value: traj.beta_v },
                   { math: "\\beta_E", value: traj.beta_e },
-                ].map(({ math, value }) => (
-                  <div key={math} style={{ border: "1px solid #ddd", borderRadius: 8, padding: "8px 16px" }}>
-                    <div style={{ fontSize: 12, color: "#666" }}>
+                ].map(({ math, value }, i, arr) => (
+                  <div
+                    key={math}
+                    style={{
+                      padding: "8px 20px 8px 0",
+                      marginRight: 20,
+                      borderRight: i < arr.length - 1 ? "1px solid #eee" : undefined,
+                    }}
+                  >
+                    <dt style={{ fontSize: 12, color: "#666" }}>
                       <Tex math={math} />
-                    </div>
-                    <div style={{ fontSize: 20, fontWeight: 600 }}>
+                    </dt>
+                    <dd className="num" style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>
                       {value >= 0 ? "+" : ""}
                       {fmt(value)}
-                    </div>
+                    </dd>
                   </div>
                 ))}
-              </div>
+              </dl>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "8px 0" }} aria-label="enabled repos">
                 {enabledRepos.map((r) => {
                   const t = trajectoryOf(r.data.commits);

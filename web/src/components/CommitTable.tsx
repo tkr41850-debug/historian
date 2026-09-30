@@ -50,6 +50,7 @@ export default function CommitTable({
         <p style={{ fontSize: 12, color: "#666", margin: "4px 0" }}>{caption}</p>
       )}
       <table
+        className="ctable"
         style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}
         aria-label="commits"
       >
@@ -110,7 +111,7 @@ export default function CommitTable({
                 borderBottom: "1px solid #eee",
               }}
             >
-              <td title={`chronological #${i + 1}`}>{i + 1}</td>
+              <td title={`chronological #${i + 1}`} className="num">{i + 1}</td>
               <td>
                 {c.permalink ? (
                   <a
@@ -128,10 +129,10 @@ export default function CommitTable({
               <td style={{ whiteSpace: "nowrap" }}>{fmtDate(c.time)}</td>
               <td>{c.author}</td>
               <td>{c.subject}</td>
-              <td style={{ textAlign: "right" }}>{fmt(c.commit.verbosity)}</td>
-              <td style={{ textAlign: "right" }}>{fmt(c.commit.erosion)}</td>
-              <td style={{ textAlign: "right" }}>{c.commit.loc}</td>
-              <td style={{ textAlign: "right" }}>{fmt(c.commit.cc_avg, 2)}</td>
+              <td style={{ textAlign: "right" }} className="num">{fmt(c.commit.verbosity)}</td>
+              <td style={{ textAlign: "right" }} className="num">{fmt(c.commit.erosion)}</td>
+              <td style={{ textAlign: "right" }} className="num">{c.commit.loc}</td>
+              <td style={{ textAlign: "right" }} className="num">{fmt(c.commit.cc_avg, 2)}</td>
             </tr>
           ))}
         </tbody>
