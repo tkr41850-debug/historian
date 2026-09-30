@@ -85,7 +85,9 @@ it); Shell (`.sh`/`.bash`) uses a built-in keyword heuristic.
 
 ```
 --repo PATH        target git repo (required)
---out FILE         output JSON (required)
+--out FILE         output JSON path (wins over --outdir)
+--outdir DIR       output directory, written as {outdir}/history-{repo}.json
+                   (default: current directory)
 --config FILE      historian.config.yaml (optional)
 --commits N        analyze last N commits (alias: --max-commits)
 --codegen          run config `codegen:` command in repo first
