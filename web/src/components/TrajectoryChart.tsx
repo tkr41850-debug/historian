@@ -1,4 +1,5 @@
 import type { HistorianCommit } from "../types";
+import { linePath } from "../parse";
 
 const W = 640;
 const H = 220;
@@ -9,10 +10,7 @@ function series(commits: HistorianCommit[], key: "verbosity" | "erosion"): numbe
 }
 
 function path(xs: number[], ys: number[], max: number): string {
-  const n = xs.length;
-  const X = (i: number) => PAD + (i / Math.max(n - 1, 1)) * (W - 2 * PAD);
-  const Y = (v: number) => H - PAD - (max > 0 ? v / max : 0) * (H - 2 * PAD);
-  return xs.map((_, i) => `${i === 0 ? "M" : "L"}${X(i).toFixed(1)},${Y(ys[i]).toFixed(1)}`).join(" ");
+  return linePath(xs, ys, max, W, H, PAD);
 }
 
 export default function TrajectoryChart({

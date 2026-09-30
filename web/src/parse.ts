@@ -1,4 +1,14 @@
-import type { HistorianCommit, HistorianData, Trajectory } from "./types";
+import type {
+  HistorianCommit,
+  HistorianData,
+  MetricKey,
+  OverlayPoint,
+  OverlaySeries,
+  RepoEntry,
+  RepoId,
+  Trajectory,
+  XMode,
+} from "./types";
 
 /** Mirror of historian/formulas.py linear_fit: least-squares slope + intercept. */
 export function linearFit(xs: number[], ys: number[]): { slope: number; intercept: number } {
@@ -197,4 +207,120 @@ export function fmtDate(epochSec: number): string {
   const d = new Date(epochSec * 1000);
   if (Number.isNaN(d.getTime())) return "—";
   return d.toISOString().slice(0, 10);
+}
+
+/** Multi-repo overlay views. */
+
+export const METRICS: readonly { key: MetricKey; label: string }[] = [
+  { key: "verbosity", label: "verbosity" },
+  { key: "erosion", label: "erosion" },
+  { key: "loc", label: "loc" },
+  { key: "cc_avg", label: "cc avg" },
+  { key: "functions", label: "functions" },
+];
+
+export function metricValue(c: HistorianCommit, m: MetricKey): number {
+  return c.commit[m];
+}
+
+export function metricSeries(commits: HistorianCommit[], m: MetricKey): number[] {
+  return commits.map((c) => metricValue(c, m));
+}
+
+/** First commit time of a repo (0 when empty). */
+export function repoT0(commits: HistorianCommit[]): number {
+  return commits.length ? commits[0].time : 0;
+}
+
+/**
+ * X coordinate for overlay charts.
+ * commit-rel normalizes position to [0,1] (guard: n<=1 -> 0).
+ */
+export function xValue(
+  mode: XMode,
+  index: number,
+  n: number,
+  time: number,
+  t0: number,
+): number {
+  switch (mode) {
+    case "time-abs":
+      return time;
+    case "time-rel":
+      return time - t0;
+    case "commit-abs":
+      return index;
+    case "commit-rel":
+      return n <= 1 ? 0 : index / (n - 1);
+  }
+}
+
+export function xLabel(mode: XMode): string {
+  switch (mode) {
+    case "time-abs":
+      return "time";
+    case "time-rel":
+      return "time since first commit";
+    case "commit-abs":
+      return "commit #";
+    case "commit-rel":
+      return "relative position";
+  }
+}
+
+/**
+ * Per-repo overlay series. Hidden repos are excluded; repos with no
+ * commits get points: []. Points never alias across repos with the same
+ * sha (each point object is freshly built).
+ */
+export function overlaySeries(
+  repos: RepoEntry[],
+  visible: Set<RepoId> | RepoId[],
+  mode: XMode,
+  metric: MetricKey,
+): OverlaySeries[] {
+  const vis = visible instanceof Set ? visible : new Set(visible);
+  const out: OverlaySeries[] = [];
+  for (const r of repos) {
+    if (!vis.has(r.id)) continue;
+    const commits = r.data.commits;
+    const n = commits.length;
+    const t0 = repoT0(commits);
+    const points: OverlayPoint[] = commits.map((c, i) => ({
+      x: xValue(mode, i, n, c.time, t0),
+      y: metricValue(c, metric),
+      sha: c.sha,
+    }));
+    out.push({ repoId: r.id, label: r.label, color: r.color, points });
+  }
+  return out;
+}
+
+/** Max y over overlay series, floored at 1e-9 so scaling never divides by 0. */
+export function yMax(series: OverlaySeries[]): number {
+  let m = 1e-9;
+  for (const s of series) {
+    for (const p of s.points) {
+      if (p.y > m) m = p.y;
+    }
+  }
+  return m;
+}
+
+/**
+ * SVG path for a polyline of (xs, ys) in a W×H box with PAD padding.
+ * max<=0 disables vertical scaling (flat line at bottom).
+ */
+export function linePath(
+  xs: number[],
+  ys: number[],
+  max: number,
+  W: number,
+  H: number,
+  PAD: number,
+): string {
+  const n = xs.length;
+  const X = (i: number) => PAD + (i / Math.max(n - 1, 1)) * (W - 2 * PAD);
+  const Y = (v: number) => H - PAD - (max > 0 ? v / max : 0) * (H - 2 * PAD);
+  return xs.map((_, i) => `${i === 0 ? "M" : "L"}${X(i).toFixed(1)},${Y(ys[i]).toFixed(1)}`).join(" ");
 }
