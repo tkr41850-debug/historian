@@ -3,5 +3,9 @@ __pycache__/
 .pytest_cache/
 node_modules/
 dist/
+.venv/
+.claude/
+.DS_Store
 historian.json
+history-*.json
 historian.config.yaml
