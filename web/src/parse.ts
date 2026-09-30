@@ -295,32 +295,3 @@ export function overlaySeries(
   }
   return out;
 }
-
-/** Max y over overlay series, floored at 1e-9 so scaling never divides by 0. */
-export function yMax(series: OverlaySeries[]): number {
-  let m = 1e-9;
-  for (const s of series) {
-    for (const p of s.points) {
-      if (p.y > m) m = p.y;
-    }
-  }
-  return m;
-}
-
-/**
- * SVG path for a polyline of (xs, ys) in a W×H box with PAD padding.
- * max<=0 disables vertical scaling (flat line at bottom).
- */
-export function linePath(
-  xs: number[],
-  ys: number[],
-  max: number,
-  W: number,
-  H: number,
-  PAD: number,
-): string {
-  const n = xs.length;
-  const X = (i: number) => PAD + (i / Math.max(n - 1, 1)) * (W - 2 * PAD);
-  const Y = (v: number) => H - PAD - (max > 0 ? v / max : 0) * (H - 2 * PAD);
-  return xs.map((_, i) => `${i === 0 ? "M" : "L"}${X(i).toFixed(1)},${Y(ys[i]).toFixed(1)}`).join(" ");
-}

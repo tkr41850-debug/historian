@@ -1,9 +1,9 @@
+import { useMemo } from "react";
+import ReactECharts from "echarts-for-react";
+import type { EChartsCoreOption } from "echarts/core";
 import type { HistorianCommit, RepoId, Selection, XMode } from "../types";
 import { repoT0, xLabel, xValue } from "../parse";
-
-const W = 640;
-const H = 220;
-const PAD = 36;
+import echarts, { axisTipFormatter, fmtY, xAxisOption } from "./echartsSetup";
 
 export interface TrajectoryRepo {
   commits: HistorianCommit[];
@@ -12,13 +12,7 @@ export interface TrajectoryRepo {
   repoId: RepoId;
 }
 
-interface Pt {
-  x: number;
-  v: number;
-  e: number;
-  sha: string;
-  subject: string;
-}
+const H = 220;
 
 export default function TrajectoryChart({
   series,
@@ -32,107 +26,120 @@ export default function TrajectoryChart({
   onSelect: (repoId: RepoId, sha: string) => void;
 }) {
   const total = series.reduce((a, s) => a + s.commits.length, 0);
-  if (total === 0) return <p>No commits to chart.</p>;
-  const perRepo = series.map((r) => {
-    const n = r.commits.length;
-    const t0 = repoT0(r.commits);
-    return {
-      repo: r,
-      pts: r.commits.map(
-        (c, i): Pt => ({
+  const { option, repoIds } = useMemo(() => {
+    const perRepo = series.map((r) => {
+      const n = r.commits.length;
+      const t0 = repoT0(r.commits);
+      return {
+        repo: r,
+        pts: r.commits.map((c, i) => ({
           x: xValue(xMode, i, n, c.time, t0),
           v: c.commit.verbosity,
           e: c.commit.erosion,
           sha: c.sha,
           subject: c.subject,
-        }),
-      ),
+        })),
+      };
+    });
+    const echSeries = perRepo.flatMap(({ repo, pts }) => {
+      const dot = (sha: string, big: number) =>
+        selected?.repoId === repo.repoId && selected?.sha === sha
+          ? { symbolSize: big, itemStyle: { color: "#123" } }
+          : {};
+      return [
+        {
+          name: `${repo.label} · verbosity`,
+          type: "line",
+          showSymbol: true,
+          symbolSize: 5,
+          lineStyle: { color: repo.color, width: 2 },
+          itemStyle: { color: repo.color },
+          emphasis: { focus: "series" },
+          data: pts.map((p) => ({
+            value: [p.x, p.v],
+            sha: p.sha,
+            subject: p.subject,
+            ...dot(p.sha, 9),
+          })),
+        },
+        {
+          name: `${repo.label} · erosion`,
+          type: "line",
+          showSymbol: true,
+          symbolSize: 4,
+          lineStyle: { color: repo.color, width: 2, type: "dashed" },
+          itemStyle: { color: repo.color },
+          emphasis: { focus: "series" },
+          data: pts.map((p) => ({
+            value: [p.x, p.e],
+            sha: p.sha,
+            subject: p.subject,
+            ...dot(p.sha, 8),
+          })),
+        },
+      ];
+    });
+    const multi = series.length > 1;
+    const opt = {
+      tooltip: {
+        trigger: "axis",
+        axisPointer: { type: "cross" },
+        formatter: axisTipFormatter(xMode, false),
+      },
+      legend: {
+        show: multi,
+        type: "scroll",
+        textStyle: { fontSize: 11 },
+      },
+      grid: { left: 52, right: 16, top: multi ? 34 : 12, bottom: 30 },
+      xAxis: xAxisOption(xMode),
+      yAxis: {
+        type: "value",
+        axisLabel: {
+          formatter: (v: number | string) => fmtY(Number(v), false),
+        },
+      },
+      series: echSeries,
+    } as EChartsCoreOption;
+    return {
+      option: opt,
+      repoIds: perRepo.flatMap(({ repo }) => [repo.repoId, repo.repoId]),
     };
-  });
-  const allX = perRepo.flatMap((s) => s.pts.map((p) => p.x));
-  const lo = Math.min(...allX);
-  const hi = Math.max(...allX);
-  const span = hi - lo || 1;
-  const max = Math.max(1e-9, ...perRepo.flatMap((s) => s.pts.flatMap((p) => [p.v, p.e]))) * 1.1;
-  const X = (v: number) => PAD + ((v - lo) / span) * (W - 2 * PAD);
-  const Y = (v: number) => H - PAD - (v / max) * (H - 2 * PAD);
-  const d = (pts: Pt[], pick: (p: Pt) => number) =>
-    pts.map((p, i) => `${i === 0 ? "M" : "L"}${X(p.x).toFixed(1)},${Y(pick(p)).toFixed(1)}`).join(" ");
+  }, [series, xMode, selected]);
+  const onEvents = useMemo(
+    () => ({
+      click: (p: { seriesIndex?: number; data?: { sha?: string } }) => {
+        const repoId =
+          p.seriesIndex != null ? repoIds[p.seriesIndex] : undefined;
+        const sha = p.data?.sha;
+        if (repoId !== undefined && sha) onSelect(repoId, sha);
+      },
+    }),
+    [repoIds, onSelect],
+  );
+  if (total === 0) return <p>No commits to chart.</p>;
   return (
     <figure style={{ margin: 0 }}>
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="verbosity/erosion trajectory">
-        {[0, 0.5, 1].map((t) => (
-          <g key={t}>
-            <line x1={PAD} x2={W - PAD} y1={H - PAD - t * (H - 2 * PAD)} y2={H - PAD - t * (H - 2 * PAD)} stroke="#ddd" />
-            <text x={2} y={H - PAD - t * (H - 2 * PAD) + 4} fontSize={10} fill="#666">
-              {(max * t).toFixed(3)}
-            </text>
-          </g>
-        ))}
-        {perRepo.map(({ repo, pts }) =>
-          pts.length === 0 ? null : (
-            <g key={repo.repoId}>
-              <path d={d(pts, (p) => p.v)} fill="none" stroke={repo.color} strokeWidth={2} />
-              <path
-                d={d(pts, (p) => p.e)}
-                fill="none"
-                stroke={repo.color}
-                strokeWidth={2}
-                strokeDasharray="6 3"
-              />
-            </g>
-          ),
-        )}
-        {perRepo.flatMap(({ repo, pts }) =>
-          pts.map((p, i) => {
-            const isSel = selected?.repoId === repo.repoId && selected?.sha === p.sha;
-            return (
-              <circle
-                key={`${repo.repoId}:${p.sha}#${i}`}
-                cx={X(p.x)}
-                cy={Y(p.v)}
-                r={isSel ? 6 : 3.5}
-                fill={isSel ? "#123" : repo.color}
-                style={{ cursor: "pointer" }}
-                onClick={() => onSelect(repo.repoId, p.sha)}
-              >
-                <title>{`${repo.label} ${p.sha.slice(0, 8)} ${p.subject} (V=${p.v.toFixed(4)} E=${p.e.toFixed(4)})`}</title>
-              </circle>
-            );
-          }),
-        )}
-        {perRepo.flatMap(({ repo, pts }) =>
-          pts.map((p, i) => {
-            const isSel = selected?.repoId === repo.repoId && selected?.sha === p.sha;
-            return (
-              <circle
-                key={`e:${repo.repoId}:${p.sha}#${i}`}
-                cx={X(p.x)}
-                cy={Y(p.e)}
-                r={isSel ? 5 : 2.5}
-                fill="none"
-                stroke={repo.color}
-                strokeWidth={1.5}
-                style={{ cursor: "pointer" }}
-                onClick={() => onSelect(repo.repoId, p.sha)}
-              >
-                <title>{`${repo.label} ${p.sha.slice(0, 8)} ${p.subject} (E=${p.e.toFixed(4)} V=${p.v.toFixed(4)})`}</title>
-              </circle>
-            );
-          }),
-        )}
-        <text x={PAD} y={H - 4} fontSize={10} fill="#666">
-          {xLabel(xMode)}
-        </text>
-      </svg>
-      <figcaption style={{ fontSize: 12, color: "#666", display: "flex", gap: 10, flexWrap: "wrap" }}>
-        {series.map((r) => (
-          <span key={r.repoId}>
-            <span style={{ color: r.color }}>●</span> {r.label}
-          </span>
-        ))}
-        <span>— verbosity (solid)</span>
-        <span>- - erosion (dashed)</span>
+      <ReactECharts
+        echarts={echarts}
+        option={option}
+        style={{ height: H }}
+        onEvents={onEvents}
+        notMerge
+        lazyUpdate
+      />
+      <figcaption
+        style={{ fontSize: 12, color: "#666", display: "flex", gap: 10, flexWrap: "wrap" }}
+      >
+        <span>
+          {series.map((r) => (
+            <span key={r.repoId}>
+              <span style={{ color: r.color }}>●</span> {r.label}{" "}
+            </span>
+          ))}
+        </span>
+        <span>— verbosity (solid), erosion (dashed) by {xLabel(xMode)}</span>
+        <span>hover for values at x, click a point to select its commit</span>
       </figcaption>
     </figure>
   );

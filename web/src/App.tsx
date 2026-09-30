@@ -302,6 +302,31 @@ export default function App() {
             </>
           )}
 
+          {/* Focused-repo picker lives above the views so the focused
+              repo is visible in every view mode, not just combined. */}
+          <h3 style={{ margin: "12px 0 4px", fontSize: 14 }}>Focused repo</h3>
+          <div role="tablist" aria-label="focused repo" style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: "4px 0 8px" }}>
+            {repos.map((r) => (
+              <button
+                key={r.id}
+                role="tab"
+                aria-selected={focused?.id === r.id}
+                onClick={() => setFocusedId(r.id)}
+                style={{
+                  border: "1px solid #ccc",
+                  borderRadius: 999,
+                  padding: "2px 10px",
+                  background: focused?.id === r.id ? "#eef4ff" : "#fff",
+                  fontWeight: focused?.id === r.id ? 700 : 400,
+                  cursor: "pointer",
+                  fontSize: 12,
+                }}
+              >
+                <span style={{ color: r.color }}>●</span> {r.label}
+              </button>
+            ))}
+          </div>
+
           {view === "combined" && (
             <>
               <h2>Overlay — verbosity / erosion</h2>
@@ -316,28 +341,6 @@ export default function App() {
                 selected={selected}
                 onSelect={selectOverlay}
               />
-              <h3 style={{ margin: "12px 0 4px", fontSize: 14 }}>Focused repo</h3>
-              <div role="tablist" aria-label="focused repo" style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: "4px 0 8px" }}>
-                {repos.map((r) => (
-                  <button
-                    key={r.id}
-                    role="tab"
-                    aria-selected={focused?.id === r.id}
-                    onClick={() => setFocusedId(r.id)}
-                    style={{
-                      border: "1px solid #ccc",
-                      borderRadius: 999,
-                      padding: "2px 10px",
-                      background: focused?.id === r.id ? "#eef4ff" : "#fff",
-                      fontWeight: focused?.id === r.id ? 700 : 400,
-                      cursor: "pointer",
-                      fontSize: 12,
-                    }}
-                  >
-                    <span style={{ color: r.color }}>●</span> {r.label}
-                  </button>
-                ))}
-              </div>
             </>
           )}
 
@@ -346,20 +349,6 @@ export default function App() {
               <h2>
                 Metric — <span style={{ color: focused.color }}>●</span> {focused.label}
               </h2>
-              <label style={{ fontSize: 13 }}>
-                repo{" "}
-                <select
-                  value={focused.id}
-                  onChange={(e) => setFocusedId(e.target.value)}
-                  aria-label="single repo selector"
-                >
-                  {repos.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
               <MetricChart
                 series={[
                   {
