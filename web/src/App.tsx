@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import DropZone from "./components/DropZone";
+import Tex from "./components/Math";
 import RepoMenu from "./components/RepoMenu";
 import TrajectoryChart from "./components/TrajectoryChart";
 import MetricChart from "./components/MetricChart";
@@ -200,10 +201,15 @@ export default function App() {
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto", padding: 20, fontFamily: "system-ui, sans-serif" }}>
       <h1 style={{ marginBottom: 4 }}>Historian — repo slop trajectory</h1>
-      <p style={{ color: "#555", marginTop: 0 }}>
-        Verbosity V = |L<sub>AST</sub> ∪ L<sub>clone</sub>| / LOC · Erosion E = Σ<sub>CC&gt;10</sub>mass / Σmass ·
-        mass = CC·√SLOC · β via least-squares
-      </p>
+      <div style={{ color: "#555", marginTop: 0, display: "flex", gap: 24, flexWrap: "wrap" }}>
+        <Tex block math="mass(f) = CC(f)\sqrt{SLOC(f)}" />
+        <Tex block math="E(C) = \frac{\sum_{CC>10} mass}{\sum mass}" />
+        <Tex block math="V(C) = \frac{|L_{AST} \cup L_{clone}|}{LOC}" />
+        <Tex
+          block
+          math="T = \{(V_i, E_i)\}, \quad \hat{\beta} = \arg\min_\beta \sum_i (y_i - \beta_0 - \beta_1 x_i)^2"
+        />
+      </div>
 
       {empty && status !== "reading" && status !== "parsing" && (
         <>
