@@ -3,43 +3,90 @@
 Parses per-language import/include/source statements with regexes,
 builds a module graph, reports elementary cycles (Johnson-lite DFS)
 and per-file in-cycle flags. stdlib only.
+
+JS/TS covers both module systems:
+
+- ESM: ``import ... from '...'``, side-effect ``import '...'``,
+  ``export ... from '...'`` re-exports (including ``export *``,
+  ``export * as ns`` and ``export type``), and dynamic
+  ``import('...')`` with a static string argument.
+- CJS: ``require('...')`` / ``require.resolve('...')`` (which also
+  covers ``import x = require('...')`` and ``module.exports =
+  require('...')``). Bare ``module.exports = ...`` /
+  ``exports.x = ...`` / ``export = ...`` forms reference no other
+  module, so they contribute no edge by design.
+
+Unresolvable imports (missing files, bare specifiers such as
+``'lodash'``, dynamic expressions such as ``require('./' + name)``
+or template literals) are ignored as graph edges: they never crash
+analysis and never create phantom nodes.
 """
 from __future__ import annotations
 import os
 import re
 from .base import FileResult, MetricPlugin
 
+# Full-source regexes for JS/TS (run with finditer over the whole file
+# so multi-line import/export statements are caught). Group 1 is the
+# raw specifier in every pattern.
+_JS_TS = [
+    # ESM static import + re-export, single- or multi-line:
+    #   import x from './a'; import './polyfill';
+    #   export * from './s'; export {a} from "./b";
+    #   export * as ns from '../u'; export type {T} from './t'
+    # Never crosses quotes or ';', so matching stays in one statement.
+    r"""\b(?:import|export)\b[^'";]*?\bfrom\s*['"]([^'"]+)['"]""",
+    # side-effect import: import './polyfill';
+    r"""\bimport\s*['"]([^'"]+)['"]""",
+    # dynamic import('./lazy') with a static string; an optional
+    # bundler comment (/* webpackChunkName: "c" */) is skipped.
+    # import.meta has no paren+string, so it never matches.
+    r"""\bimport\(\s*(?:/\*.*?\*/\s*)?['"]([^'"]+)['"]\s*\)""",
+    # CJS: require('./a'), require.resolve('./p'),
+    # import a = require('./a'). Non-string-literal arguments
+    # (concatenation, template literals, path.join) never match.
+    r"""\brequire(?:\.resolve)?\(\s*(?:/\*.*?\*/\s*)?['"]([^'"]+)['"]\s*\)""",
+]
+
 _PATTERNS = {
     "py": [r"^\s*(?:from|import)\s+([\w.]+)"],
-    "js": [r"""import\s+(?:.*?\s+from\s+)?['"]([^'"]+)['"]""",
-            r"""require\(\s*['"]([^'"]+)['"]\s*\)"""],
-    "ts": [r"""import\s+(?:.*?\s+from\s+)?['"]([^'"]+)['"]""",
-            r"""require\(\s*['"]([^'"]+)['"]\s*\)"""],
+    "js": _JS_TS,
+    "ts": _JS_TS,
     "other-code": [r'^\s*#\s*include\s+"([^"]+)"'],
     "sh": [r"^\s*(?:source|\.)\s+([^\s;#]+)"],
     "shell": [r"^\s*(?:source|\.)\s+([^\s;#]+)"],
     "bash": [r"^\s*(?:source|\.)\s+([^\s;#]+)"],
 }
 
+# Languages whose patterns run against the whole source at once
+# (rather than line by line).
+_FULL_SOURCE = {"js", "ts"}
+
 
 def _resolve(base_path, raw, lang):
-    raw = raw.strip().strip("'\"")
+    """Map a raw specifier to a lookup key for analyze_repo.
+
+    Never raises on odd input; returns "" when there is nothing to
+    resolve. Known extensions (including .mjs/.cjs/.jsx/.tsx) are
+    preserved as-is; extensionless "./foo" stays extensionless and is
+    matched by stem/index probing in analyze_repo.
+    """
+    try:
+        raw = (raw or "").strip().strip("'\"")
+    except Exception:
+        return ""
     if lang == "py":
-        return raw.split(".")[0] + ".py"
-    p = raw.split("?")[0]
+        head = raw.split(".")[0].strip()
+        return (head + ".py") if head else ""
+    p = raw.split("?")[0].split("#")[0].strip()
+    if not p:
+        return ""
     if p.startswith("."):
-        d = os.path.dirname(base_path)
-        cands = [os.path.normpath(os.path.join(d, p)),
-                 os.path.normpath(os.path.join(d, p + ".py")),
-                 os.path.normpath(os.path.join(d, p + ".js")),
-                 os.path.normpath(os.path.join(d, p + ".ts")),
-                 os.path.normpath(os.path.join(d, p + ".sh"))]
-        return cands[0]
-    base = os.path.basename(p)
-    for ext in (".py", ".js", ".ts", ".cpp", ".h", ".sh"):
-        if base.endswith(ext):
-            return base
-    return base
+        res = os.path.normpath(os.path.join(os.path.dirname(base_path), p))
+        # Degenerate specifiers such as require('./' + name) can capture
+        # a bare "./"; they resolve to nothing and must not become edges.
+        return res if res not in (".", "") else ""
+    return os.path.basename(p.rstrip("/")) or ""
 
 
 class ImportCyclesPlugin(MetricPlugin):
@@ -51,22 +98,62 @@ class ImportCyclesPlugin(MetricPlugin):
     def analyze_file(self, path, source, lang):
         pats = _PATTERNS.get(lang, [])
         edges = set()
-        for line in source.splitlines():
-            for pat in pats:
-                m = re.search(pat, line)
-                if m:
-                    edges.add(_resolve(path, m.group(1), lang))
+        try:
+            if lang in _FULL_SOURCE:
+                for pat in pats:
+                    for m in re.finditer(pat, source):
+                        e = _resolve(path, m.group(1), lang)
+                        if e:
+                            edges.add(e)
+            else:
+                for line in source.splitlines():
+                    for pat in pats:
+                        m = re.search(pat, line)
+                        if m:
+                            e = _resolve(path, m.group(1), lang)
+                            if e:
+                                edges.add(e)
+        except Exception:
+            pass
         return FileResult(file_metrics={"imports": sorted(edges)})
 
     def analyze_repo(self, files: dict) -> dict:
         from historian.git import lang_of
-        names = {os.path.basename(p): p for p in files}
+        by_base = {}
+        for p in files:
+            by_base.setdefault(os.path.basename(p), p)
+        # Extension probing: stem map ('foo' -> foo.js/foo.ts/...) and
+        # directory-index map ('./dir' -> dir/index.js, 'src/dir' path).
+        by_stem, by_path = {}, {}
+        for p in files:
+            norm = os.path.normpath(p)
+            stem_path, _ext = os.path.splitext(norm)
+            by_path.setdefault(stem_path, p)
+            by_stem.setdefault(os.path.basename(stem_path), p)
+            if os.path.basename(stem_path) == "index":
+                by_path.setdefault(os.path.dirname(stem_path) or ".", p)
+                parent = os.path.basename(os.path.dirname(norm))
+                if parent:
+                    by_stem.setdefault(parent, p)
         graph = {}
         for path, src in files.items():
             r = self.analyze_file(path, src, lang_of(path))
-            graph[path] = {names.get(os.path.basename(e), e)
-                           for e in r.file_metrics["imports"]}
-            graph[path] = {g for g in graph[path] if g in files}
+            resolved = set()
+            for e in r.file_metrics["imports"]:
+                if not e:
+                    continue
+                hit = by_base.get(os.path.basename(e))
+                if hit is None:
+                    hit = by_path.get(os.path.normpath(e))
+                if hit is None:
+                    base = os.path.basename(e)
+                    stem, ext = os.path.splitext(base)
+                    hit = by_stem.get(stem if ext else base)
+                # Unresolvable imports are ignored: no crash, and no
+                # phantom nodes enter the graph.
+                if hit is not None and hit in files:
+                    resolved.add(hit)
+            graph[path] = resolved
         cycles, stack, visited = [], [], set()
 
         def dfs(node, trail):

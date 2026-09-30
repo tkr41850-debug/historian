@@ -35,7 +35,11 @@ class FileResult:
 
 
 class MetricPlugin:
-    """Base class for metric plugins."""
+    """Base class for metric plugins.
+
+    Instances are shared across worker threads; analyze_* must not
+    mutate self (keep all state in locals).
+    """
 
     name = "base"
 

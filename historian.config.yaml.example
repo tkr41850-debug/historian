@@ -11,6 +11,10 @@ github_url: null
 # CC threshold for erosion (paper: 10)
 cc_threshold: 10
 
+# Parallel workers for per-commit analysis (CLI --jobs wins).
+# Null = CPU count; 1 = serial.
+jobs: null
+
 # Enable/disable drop-in plugins (filename stem -> enabled)
 plugins:
   loc: true

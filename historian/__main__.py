@@ -38,6 +38,9 @@ def main(argv=None):
                     help="override plugin enable (repeatable), e.g. --plugin verbosity=off")
     ap.add_argument("--no-progress", dest="progress", action="store_false",
                     help="hide the tqdm commit progress bar")
+    ap.add_argument("--jobs", "-j", type=int, default=None,
+                    help="parallel workers for per-commit analysis "
+                         "(default: cpu count; 1 = serial)")
     a = ap.parse_args(argv)
     cfg = load_config(a.config)
     if a.include is not None:
@@ -51,9 +54,11 @@ def main(argv=None):
     import json as _json
     eff = {"codegen": cfg.get("codegen"), "github_url": cfg.get("github_url"),
            "cc_threshold": cfg.get("cc_threshold", 10), "plugins": cfg.get("plugins"),
-           "include": cfg.get("include", []), "exclude": cfg.get("exclude", [])}
+           "include": cfg.get("include", []), "exclude": cfg.get("exclude", []),
+           "jobs": a.jobs if a.jobs is not None else cfg.get("jobs")}
     print(f"config: {_json.dumps(eff, default=str)}")
-    data = run(a.repo, cfg, a.max_commits, a.codegen, progress=a.progress)
+    data = run(a.repo, cfg, a.max_commits, a.codegen, progress=a.progress,
+               jobs=a.jobs)
     Path(a.out).write_text(json.dumps(data, indent=2, default=str))
     print(f"wrote {len(data['commits'])} commits -> {a.out}")
 
