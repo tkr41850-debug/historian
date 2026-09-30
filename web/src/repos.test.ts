@@ -66,6 +66,19 @@ describe("addRepos/removeRepo", () => {
     expect(after[0].color).toBe(cur[1].color); // stable: no recolor on remove
     expect(cur).toHaveLength(2); // input untouched
   });
+  it("re-add after remove reuses a free color, never duplicates", () => {
+    let repos = addRepos([], [
+      { filename: "a.json", data: parseHistorian(DATA({ github_url: "https://github.com/x/a" })) },
+      { filename: "b.json", data: parseHistorian(DATA({ github_url: "https://github.com/x/b" })) },
+    ]);
+    repos = removeRepo(repos, repos[0].id);
+    repos = addRepos(repos, [
+      { filename: "c.json", data: parseHistorian(DATA({ github_url: "https://github.com/x/c" })) },
+    ]);
+    const colors = repos.map((r) => r.color);
+    expect(new Set(colors).size).toBe(colors.length);
+    expect(repos[1].color).toBe(REPO_PALETTE[0]); // freed color reused
+  });
 });
 
 describe("filenameStem", () => {

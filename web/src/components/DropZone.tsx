@@ -1,14 +1,19 @@
 import { useRef, useState } from "react";
 
 export default function DropZone({
-  onFile,
+  onFiles,
   error,
 }: {
-  onFile: (f: File) => void;
+  onFiles: (fs: File[]) => void;
   error?: string | null;
 }) {
   const [drag, setDrag] = useState(false);
   const input = useRef<HTMLInputElement>(null);
+  const pick = (list: FileList | null | undefined) => {
+    if (!list) return;
+    const fs = Array.from(list);
+    if (fs.length > 0) onFiles(fs);
+  };
   return (
     <div>
       <div
@@ -20,13 +25,12 @@ export default function DropZone({
         onDrop={(e) => {
           e.preventDefault();
           setDrag(false);
-          const f = e.dataTransfer.files?.[0];
-          if (f) onFile(f);
+          pick(e.dataTransfer.files);
         }}
         onClick={() => input.current?.click()}
         role="button"
         tabIndex={0}
-        aria-label="Load historian.json: drop a file here or press Enter to browse"
+        aria-label="Load historian.json files: drop files here or press Enter to browse"
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") input.current?.click();
         }}
@@ -39,15 +43,15 @@ export default function DropZone({
           background: drag ? "#eef4ff" : "#fafafa",
         }}
       >
-        Drop <code>historian.json</code> here, or click to browse
+        Drop <code>historian.json</code> files here — one or many — or click to browse
         <input
           ref={input}
           type="file"
           accept=".json,application/json"
+          multiple
           hidden
           onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) onFile(f);
+            pick(e.target.files);
             e.target.value = "";
           }}
         />

@@ -114,6 +114,16 @@ export function addRepos(
   additions: Array<{ filename: string; data: HistorianData }>,
 ): RepoEntry[] {
   const out = [...current];
+  const used = new Set(out.map((r) => r.color));
+  const nextColor = () => {
+    for (let i = 0; ; i++) {
+      const c = colorForOrder(i);
+      if (!used.has(c)) {
+        used.add(c);
+        return c;
+      }
+    }
+  };
   for (const a of additions) {
     const base = deriveRepoLabel(a.data, a.filename);
     const label = uniqueLabel(
@@ -123,7 +133,7 @@ export function addRepos(
     out.push({
       id: makeRepoId(),
       label,
-      color: colorForOrder(out.length),
+      color: nextColor(),
       filename: a.filename,
       data: a.data,
     });

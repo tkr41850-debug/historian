@@ -18,10 +18,12 @@ export default function CommitTable({
   commits,
   selected,
   onSelect,
+  caption,
 }: {
   commits: HistorianCommit[];
   selected: string | null;
   onSelect: (sha: string | null) => void;
+  caption?: string;
 }) {
   const [sortKey, setSortKey] = useState<SortKey>("index");
   const [dir, setDir] = useState<1 | -1>(1);
@@ -44,6 +46,9 @@ export default function CommitTable({
 
   return (
     <div style={{ overflowX: "auto" }}>
+      {caption != null && caption !== "" && (
+        <p style={{ fontSize: 12, color: "#666", margin: "4px 0" }}>{caption}</p>
+      )}
       <table
         style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}
         aria-label="commits"
@@ -92,7 +97,7 @@ export default function CommitTable({
         >
           {rows.map((c, i) => (
             <tr
-              key={`${c.sha}#${commits.indexOf(c)}`}
+              key={`${c.sha}#${i}`}
               onClick={() => onSelect(c.sha)}
               style={{
                 cursor: "pointer",
@@ -105,7 +110,7 @@ export default function CommitTable({
                 borderBottom: "1px solid #eee",
               }}
             >
-              <td title={`chronological #${commits.indexOf(c) + 1}`}>{commits.indexOf(c) + 1}</td>
+              <td title={`chronological #${i + 1}`}>{i + 1}</td>
               <td>
                 {c.permalink ? (
                   <a
