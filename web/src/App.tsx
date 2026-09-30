@@ -163,7 +163,7 @@ export default function App() {
   );
   const filtering =
     filters.author !== "" || filters.search !== "" || filters.from !== "" || filters.to !== "";
-  // Stat cards follow the visible (filtered) series so ΔV/ΔE/β stay
+  // Stat cards follow the visible (filtered) series so delta/beta stay
   // correct under filters; fall back to the full-file trajectory only
   // when nothing is filtered.
   const traj =
@@ -202,9 +202,9 @@ export default function App() {
     <div style={{ maxWidth: 1100, margin: "0 auto", padding: 20, fontFamily: "system-ui, sans-serif" }}>
       <h1 style={{ marginBottom: 4 }}>Historian — repo slop trajectory</h1>
       <div style={{ color: "#555", marginTop: 0, display: "flex", gap: 24, flexWrap: "wrap" }}>
-        <Tex block math="mass(f) = CC(f)\sqrt{SLOC(f)}" />
-        <Tex block math="E(C) = \frac{\sum_{CC>10} mass}{\sum mass}" />
-        <Tex block math="V(C) = \frac{|L_{AST} \cup L_{clone}|}{LOC}" />
+        <Tex block math="\text{mass}(f) = \text{CC}(f)\sqrt{\text{SLOC}(f)}" />
+        <Tex block math="E(C) = \frac{\sum_{\text{CC}>10} \text{mass}}{\sum \text{mass}}" />
+        <Tex block math="V(C) = \frac{|L_{\text{AST}} \cup L_{\text{clone}}|}{\text{LOC}}" />
         <Tex
           block
           math="T = \{(V_i, E_i)\}, \quad \hat{\beta} = \arg\min_\beta \sum_i (y_i - \beta_0 - \beta_1 x_i)^2"
@@ -264,16 +264,18 @@ export default function App() {
               </h2>
               <div style={{ display: "flex", gap: 16, flexWrap: "wrap", margin: "12px 0" }}>
                 {[
-                  ["ΔV", traj.delta_v],
-                  ["ΔE", traj.delta_e],
-                  ["β_V", traj.beta_v],
-                  ["β_E", traj.beta_e],
-                ].map(([k, v]) => (
-                  <div key={k as string} style={{ border: "1px solid #ddd", borderRadius: 8, padding: "8px 16px" }}>
-                    <div style={{ fontSize: 12, color: "#666" }}>{k}</div>
+                  { math: "\\Delta V", value: traj.delta_v },
+                  { math: "\\Delta E", value: traj.delta_e },
+                  { math: "\\beta_V", value: traj.beta_v },
+                  { math: "\\beta_E", value: traj.beta_e },
+                ].map(({ math, value }) => (
+                  <div key={math} style={{ border: "1px solid #ddd", borderRadius: 8, padding: "8px 16px" }}>
+                    <div style={{ fontSize: 12, color: "#666" }}>
+                      <Tex math={math} />
+                    </div>
                     <div style={{ fontSize: 20, fontWeight: 600 }}>
-                      {(v as number) >= 0 ? "+" : ""}
-                      {fmt(v as number)}
+                      {value >= 0 ? "+" : ""}
+                      {fmt(value)}
                     </div>
                   </div>
                 ))}
@@ -289,8 +291,9 @@ export default function App() {
                       title={`${r.filename}: ${n} commits`}
                     >
                       <span style={{ color: r.color }}>●</span> {r.label} ·{" "}
-                      {n === 1 ? "1 commit" : `${n} commits`} · ΔV {t.delta_v >= 0 ? "+" : ""}
-                      {fmt(t.delta_v)} · ΔE {t.delta_e >= 0 ? "+" : ""}
+                      {n === 1 ? "1 commit" : `${n} commits`} · <Tex math="\Delta V" />{" "}
+                      {t.delta_v >= 0 ? "+" : ""}
+                      {fmt(t.delta_v)} · <Tex math="\Delta E" /> {t.delta_e >= 0 ? "+" : ""}
                       {fmt(t.delta_e)}
                     </span>
                   );
