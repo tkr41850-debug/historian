@@ -6,16 +6,23 @@
 default:
     @just --list
 
-# Analyze a repo into {repo}-history.json.
-# Params: out= (default {repo}-history.json), config= (default historian.config.yaml if present),
+# Analyze a repo into {outdir}/history-{repo}.json (history- prefix groups
+# analyses together under ls sorting).
+# Params: out= (explicit path, wins over outdir), outdir= (default .),
+#   config= (default historian.config.yaml if present),
 #   commits= (last N commits, default all), codegen=on|off (default: config intent),
-#   plugins= (space-separated name=on|off overrides, e.g. 'plugins="verbosity=off cc=on"').
+#   plugins= (space-separated name=on|off overrides, e.g. 'plugins="verbosity=off cc=on"'),
+#   jobs= (parallel workers, default cpu count; 1 = serial).
 # Examples:
 #   just analyze /path/to/repo
+#   just analyze /path/to/repo outdir=/tmp/histories
 #   just analyze /path/to/repo out=my.json config=other.yaml
-#   just analyze /path/to/repo commits=50 codegen=on plugins="verbosity=off"
-analyze repo out="" config="" commits="" codegen="" plugins="":
-    bash scripts/analyze.sh {{ quote(repo) }} {{ quote(trim_start_match(out, "out=")) }} {{ quote(trim_start_match(config, "config=")) }} {{ quote(trim_start_match(commits, "commits=")) }} {{ quote(trim_start_match(codegen, "codegen=")) }} {{ quote(trim_start_match(plugins, "plugins=")) }}
+#   just analyze /path/to/repo commits=50 codegen=on plugins="verbosity=off" jobs=4
+# NOTE: just has no trim_start_match(); KEY= prefixes are stripped in
+# scripts/analyze.sh instead. Pass KEY=VALUE positionally and skip with ""
+# (e.g. `just analyze r "" /tmp/h "" 50 on "verbosity=off" 4`).
+analyze repo out="" outdir="" config="" commits="" codegen="" plugins="" jobs="":
+    bash scripts/analyze.sh {{ quote(repo) }} {{ quote(out) }} {{ quote(outdir) }} {{ quote(config) }} {{ quote(commits) }} {{ quote(codegen) }} {{ quote(plugins) }} {{ quote(jobs) }}
 
 # Serve the dashboard locally (vite dev server, root path — for local editing only).
 serve:
