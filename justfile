@@ -14,6 +14,8 @@ default:
 #   plugins= (space-separated name=on|off overrides, e.g. 'plugins="verbosity=off cc=on"'),
 #   jobs= (parallel workers, default cpu count; 1 = serial).
 # Examples:
+#   just analyze                        # shows the analyzer help menu
+#   just analyze --help                 # same (also -h)
 #   just analyze /path/to/repo
 #   just analyze /path/to/repo outdir=/tmp/histories
 #   just analyze /path/to/repo out=my.json config=other.yaml
@@ -21,7 +23,7 @@ default:
 # NOTE: just has no trim_start_match(); KEY= prefixes are stripped in
 # scripts/analyze.sh instead. Pass KEY=VALUE positionally and skip with ""
 # (e.g. `just analyze r "" /tmp/h "" 50 on "verbosity=off" 4`).
-analyze repo out="" outdir="" config="" commits="" codegen="" plugins="" jobs="":
+analyze repo="" out="" outdir="" config="" commits="" codegen="" plugins="" jobs="":
     bash scripts/analyze.sh {{ quote(repo) }} {{ quote(out) }} {{ quote(outdir) }} {{ quote(config) }} {{ quote(commits) }} {{ quote(codegen) }} {{ quote(plugins) }} {{ quote(jobs) }}
 
 # Serve the dashboard locally (vite dev server, root path — for local editing only).
