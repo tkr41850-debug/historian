@@ -290,6 +290,7 @@ export function overlaySeries(
       x: xValue(mode, i, n, c.time, t0),
       y: metricValue(c, metric),
       sha: c.sha,
+      subject: c.subject,
     }));
     out.push({ repoId: r.id, label: r.label, color: r.color, points });
   }

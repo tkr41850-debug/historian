@@ -67,10 +67,11 @@ export default function MetricChart({
             ? {
                 value: [p.x, p.y],
                 sha: p.sha,
+                subject: p.subject,
                 symbolSize: 10,
                 itemStyle: { color: "#123" },
               }
-            : { value: [p.x, p.y], sha: p.sha },
+            : { value: [p.x, p.y], sha: p.sha, subject: p.subject },
         ),
       })),
     } as EChartsCoreOption;

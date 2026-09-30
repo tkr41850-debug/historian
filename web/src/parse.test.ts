@@ -193,6 +193,14 @@ describe("overlaySeries", () => {
     s1.points[0].x = 999;
     expect(s2.points[0].x).toBe(0);
   });
+  it("points carry sha + subject for tooltips", () => {
+    const cs = [
+      hc({ sha: "a", subject: "fix bug", time: 1700000000, commit: { loc: 10, verbosity: 0.1, erosion: 0, functions: 1, cc_avg: 1 } }),
+      hc({ sha: "b", subject: "add feature", time: 1700100000, commit: { loc: 20, verbosity: 0.3, erosion: 0, functions: 1, cc_avg: 1 } }),
+    ];
+    const [s] = overlaySeries([repoEntry({ id: "r1", commits: cs })], new Set(["r1"]), "commit-abs", "verbosity");
+    expect(s.points.map((p) => [p.sha, p.subject])).toEqual([["a", "fix bug"], ["b", "add feature"]]);
+  });
   it("empty repos get points [] and hidden repos are excluded", () => {
     const repos = [
       repoEntry({ id: "r1", commits }),

@@ -104,6 +104,7 @@ export interface OverlayPoint {
   x: number;
   y: number;
   sha: string;
+  subject: string;
 }
 
 export interface OverlaySeries {

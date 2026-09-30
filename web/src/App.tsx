@@ -362,6 +362,7 @@ export default function App() {
                         x: xValue(xMode, i, n, c.time, t0),
                         y: metricValue(c, metric),
                         sha: c.sha,
+                        subject: c.subject,
                       }));
                     })(),
                   },
