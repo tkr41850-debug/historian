@@ -74,4 +74,41 @@ export interface HistorianData {
     [k: string]: unknown;
   };
   commits: HistorianCommit[];
+  config?: { github_url?: unknown; [k: string]: unknown };
+}
+
+/** Multi-repo overlay views. */
+
+export type RepoId = string;
+
+export interface RepoEntry {
+  id: RepoId;
+  label: string;
+  color: string;
+  filename: string;
+  data: HistorianData;
+}
+
+export interface Selection {
+  repoId: RepoId;
+  sha: string;
+}
+
+export type XMode = "time-abs" | "time-rel" | "commit-rel" | "commit-abs";
+
+export type MetricKey = "verbosity" | "erosion" | "loc" | "cc_avg" | "functions";
+
+export type ViewMode = "combined" | "single" | "grid";
+
+export interface OverlayPoint {
+  x: number;
+  y: number;
+  sha: string;
+}
+
+export interface OverlaySeries {
+  repoId: RepoId;
+  label: string;
+  color: string;
+  points: OverlayPoint[];
 }

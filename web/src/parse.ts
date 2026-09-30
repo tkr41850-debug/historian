@@ -144,7 +144,14 @@ export function parseHistorian(raw: unknown): HistorianData {
     ...metaRaw,
     trajectory: (metaRaw.trajectory as Trajectory | undefined) ?? trajectoryOf(commits),
   };
-  return { meta, commits } as HistorianData;
+  // config passes through unvalidated (no shape checks) and is
+  // shallow-copied so we never alias — and never mutate — the caller.
+  const configRaw = d.config;
+  const config =
+    typeof configRaw === "object" && configRaw !== null && !Array.isArray(configRaw)
+      ? { ...(configRaw as Record<string, unknown>) }
+      : (configRaw as HistorianData["config"]);
+  return { meta, commits, ...(config !== undefined ? { config } : {}) } as HistorianData;
 }
 
 export interface Filters {
